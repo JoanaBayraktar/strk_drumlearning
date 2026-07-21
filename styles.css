@@ -1099,7 +1099,10 @@ canvas {
   background: var(--control);
   color: var(--text);
   cursor: pointer;
+  display: grid;
+  place-items: center;
   font-size: var(--type-md);
+  line-height: 1;
   font-weight: var(--weight-label);
 }
 
@@ -1784,7 +1787,7 @@ canvas {
   .transport {
     grid-column: 1 / -1;
     justify-self: stretch;
-    grid-template-columns: repeat(3, minmax(44px, 1fr));
+    grid-template-columns: repeat(4, minmax(44px, 1fr));
   }
 
   .icon-btn {
@@ -1931,6 +1934,185 @@ canvas {
   .completion-btn {
     flex: 1;
     min-width: 0;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .drum-app {
+    height: 100dvh;
+  }
+
+  .topbar {
+    flex: 0 0 50px;
+    grid-template-columns: auto minmax(216px, auto) minmax(0, 1fr);
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-3);
+  }
+
+  .brand {
+    gap: var(--space-2);
+  }
+
+  .app-logo {
+    width: 92px;
+  }
+
+  .library-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .library-btn::before,
+  .library-btn::after {
+    display: none;
+  }
+
+  .transport {
+    grid-template-columns: 36px 44px 36px 36px;
+    gap: var(--space-1);
+    padding: 0;
+    background: transparent;
+  }
+
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .icon-btn.primary {
+    width: 44px;
+  }
+
+  .player-meta {
+    max-width: none;
+  }
+
+  .player-meta strong {
+    font-size: var(--type-sm);
+  }
+
+  .player-meta span,
+  .player-meta small {
+    display: inline;
+    margin-top: 0;
+    margin-left: var(--space-2);
+    font-size: 0.625rem;
+  }
+
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: var(--space-2);
+    padding: var(--space-2);
+  }
+
+  .playfield {
+    gap: var(--space-2);
+  }
+
+  .progress-wrap {
+    height: 4px;
+  }
+
+  .stage {
+    grid-template-columns: 88px minmax(0, 1fr);
+    border-radius: var(--radius-2);
+  }
+
+  .lane-labels {
+    padding: 0 var(--space-2) 32px;
+    font-size: 0.625rem;
+  }
+
+  .lane-buttons {
+    height: 32px;
+    gap: var(--space-1);
+    padding: 4px var(--space-2);
+  }
+
+  .lane-buttons button {
+    align-content: start;
+    padding-top: 3px;
+    font-size: 0.5625rem;
+  }
+
+  .seek-controls {
+    bottom: 42px;
+    grid-template-columns: repeat(2, 36px);
+  }
+
+  .seek-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .hit-line {
+    bottom: 32px;
+  }
+
+  .settings-panel {
+    height: 64px;
+    max-height: 64px;
+    border-radius: var(--radius-2);
+  }
+
+  .performance-panel,
+  .switch-row,
+  .loop-panel {
+    display: none;
+  }
+
+  .controls {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding: var(--space-1);
+    gap: var(--space-1);
+  }
+
+  .control-stepper {
+    min-height: 56px;
+    padding: 6px var(--space-2);
+    align-items: center;
+    flex-direction: row;
+    gap: var(--space-1);
+  }
+
+  .control-stepper span {
+    font-size: 0;
+    gap: 0;
+  }
+
+  .control-stepper span i {
+    width: 18px;
+    height: 18px;
+  }
+
+  .control-stepper strong {
+    margin-top: 0;
+    font-size: var(--type-md);
+  }
+
+  .stepper-actions {
+    margin-left: auto;
+    grid-template-columns: repeat(2, 30px);
+    gap: var(--space-1);
+  }
+
+  .preset-actions {
+    margin-left: auto;
+    grid-template-columns: repeat(3, 28px);
+    padding: 2px;
+  }
+
+  .step-btn,
+  .preset-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 1rem;
+  }
+
+  .preset-btn i {
+    width: 13px;
+    height: 13px;
   }
 }
 

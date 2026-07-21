@@ -103,7 +103,8 @@ const state = {
   midiAccess: null,
   midiConnected: false,
   midiDeviceName: "",
-  midiLastNote: ""
+  midiLastNote: "",
+  audioUnlocked: false
 };
 
 const els = {
@@ -779,6 +780,7 @@ function stepControl(control, delta) {
 function ensureAudio() {
   if (!state.audio) state.audio = new (window.AudioContext || window.webkitAudioContext)();
   if (state.audio.state === "suspended") state.audio.resume();
+  unlockAudioOutput();
   preloadSamples();
   if (!state.noiseBuffer) {
     const length = Math.floor(state.audio.sampleRate * 0.25);
@@ -787,6 +789,20 @@ function ensureAudio() {
     for (let i = 0; i < length; i++) data[i] = Math.random() * 2 - 1;
     state.noiseBuffer = buffer;
   }
+}
+
+function unlockAudioOutput() {
+  if (!state.audio || state.audioUnlocked) return;
+  const now = state.audio.currentTime;
+  const source = state.audio.createBufferSource();
+  const buffer = state.audio.createBuffer(1, 1, state.audio.sampleRate);
+  const gain = state.audio.createGain();
+  gain.gain.setValueAtTime(0.0001, now);
+  source.buffer = buffer;
+  source.connect(gain).connect(state.audio.destination);
+  source.start(now);
+  source.stop(now + 0.01);
+  state.audioUnlocked = true;
 }
 
 function preloadSamples() {
@@ -1566,6 +1582,7 @@ function tick() {
 
 function init() {
   document.addEventListener("pointerdown", ensureAudio, { once: true });
+  document.addEventListener("touchstart", ensureAudio, { once: true, passive: true });
   document.addEventListener("keydown", ensureAudio, { once: true });
   els.library.addEventListener("click", openStartScreen);
   els.play.addEventListener("click", togglePlay);
