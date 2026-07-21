@@ -501,24 +501,6 @@ function startPractice(trackId) {
   }, 260);
 }
 
-function iconForIntensity(intensity) {
-  if (intensity === "Intense") return "fa-cloud-bolt";
-  if (intensity === "Groove") return "fa-cloud-sun";
-  return "fa-sun";
-}
-
-function songMetaChip(icon, label, value) {
-  return `
-    <span class="song-chip">
-      <i class="fa-solid ${icon}" aria-hidden="true"></i>
-      <span>
-        <small>${label}</small>
-        <strong>${value}</strong>
-      </span>
-    </span>
-  `;
-}
-
 function selectedLibraryTrack() {
   return tracks.find((track) => track.id === state.selectedTrackId) || tracks[0];
 }
@@ -548,11 +530,18 @@ function trackSourceFilter(track) {
   return trackSource(track) === "Imported" ? "imported" : "built-in";
 }
 
+function trackDisplayParts(track) {
+  const [title, ...rest] = track.name.split(" - ");
+  const subtitle = rest.length ? rest.join(" - ") : trackSource(track);
+  return { title: title.trim(), subtitle: subtitle.trim() };
+}
+
 function visibleLibraryTracks() {
   const query = state.libraryQuery.trim().toLowerCase();
   return tracks.filter((track) => {
     const matchesFilter = state.libraryFilter === "all" || trackSourceFilter(track) === state.libraryFilter;
-    const matchesQuery = !query || track.name.toLowerCase().includes(query);
+    const display = trackDisplayParts(track);
+    const matchesQuery = !query || `${track.name} ${display.title} ${display.subtitle}`.toLowerCase().includes(query);
     return matchesFilter && matchesQuery;
   });
 }
@@ -562,7 +551,8 @@ function updateSelectedSongPanel() {
   const meta = trackMeta(track);
   const intensity = trackIntensity(track);
   const source = trackSource(track);
-  els.selectedSongTitle.textContent = track.name;
+  const display = trackDisplayParts(track);
+  els.selectedSongTitle.textContent = display.title;
   els.selectedSongMeta.textContent = `${meta.bpm} / ${meta.duration} / ${meta.notes} / ${intensity} / ${source}`;
 }
 
@@ -588,27 +578,21 @@ function renderSongCards() {
   }
 
   for (const track of visibleTracks) {
-    const meta = trackMeta(track);
-    const intensity = trackIntensity(track);
+    const display = trackDisplayParts(track);
     const button = document.createElement("button");
     button.type = "button";
     button.className = `song-card${track.id === state.selectedTrackId ? " is-selected" : ""}`;
     button.dataset.trackId = track.id;
     button.setAttribute("aria-pressed", String(track.id === state.selectedTrackId));
     button.innerHTML = `
-      <span class="song-number"></span>
+      <span class="song-icon"><i class="fa-solid fa-music" aria-hidden="true"></i></span>
       <span class="song-main">
         <span class="song-title"></span>
-      </span>
-      <span class="song-meta">
-        ${songMetaChip(iconForIntensity(intensity), "Level", intensity)}
-        ${songMetaChip("fa-clock", "Dauer", meta.duration)}
-        ${songMetaChip("fa-gauge", "Tempo", meta.bpm)}
-        ${songMetaChip("fa-drum", "Hits", meta.notes.replace(" hits", ""))}
+        <span class="song-artist"></span>
       </span>
     `;
-    button.querySelector(".song-title").textContent = track.name;
-    button.querySelector(".song-number").textContent = String(tracks.indexOf(track) + 1).padStart(2, "0");
+    button.querySelector(".song-title").textContent = display.title;
+    button.querySelector(".song-artist").textContent = display.subtitle;
     button.addEventListener("click", () => selectLibraryTrack(track.id));
     els.songList.appendChild(button);
   }
