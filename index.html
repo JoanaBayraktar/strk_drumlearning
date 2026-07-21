@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>STRK</title>
+    <script>
+      const strkTheme = localStorage.getItem("strk-theme") || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+      document.documentElement.dataset.theme = strkTheme;
+    </script>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div id="drum-app" class="drum-app">
+      <header class="topbar" aria-label="Player controls">
+        <div class="brand">
+          <img class="app-logo" src="./assets/strk-logo.png" alt="STRK">
+          <button id="libraryBtn" class="icon-btn library-btn" type="button" aria-label="Open library" title="Library">
+            <i class="fa-solid fa-book" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <div class="transport" aria-label="Transport controls">
+          <button id="restartBtn" class="icon-btn" type="button" aria-label="Restart track" title="Restart">
+            <i class="fa-solid fa-repeat" aria-hidden="true"></i>
+          </button>
+          <button id="playBtn" class="icon-btn primary" type="button" aria-label="Play or pause" title="Play/Pause">
+            <i class="fa-solid fa-play icon-play" aria-hidden="true"></i>
+            <i class="fa-solid fa-pause icon-pause" aria-hidden="true"></i>
+          </button>
+          <button id="muteBtn" class="icon-btn" type="button" aria-label="Mute click sounds" title="Mute">
+            <i class="fa-solid fa-volume icon-volume" aria-hidden="true"></i>
+            <i class="fa-solid fa-volume-xmark icon-muted" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <div class="player-meta" aria-label="Current song">
+          <strong id="currentSongTitle">-</strong>
+          <span id="currentSongBpm">- BPM</span>
+        </div>
+      </header>
+
+      <main id="startScreen" class="start-screen">
+        <section class="start-copy" aria-labelledby="startTitle">
+          <div class="start-intro">
+            <div class="start-kicker-row">
+              <div class="section-label">STRK Library</div>
+              <button id="themeToggle" class="theme-toggle" type="button" aria-label="Light mode einschalten" aria-pressed="false">
+                <i class="fa-solid fa-sun theme-light" aria-hidden="true"></i>
+                <i class="fa-solid fa-moon theme-dark" aria-hidden="true"></i>
+                <span>Light</span>
+              </button>
+            </div>
+            <h2 id="startTitle">Song auswählen</h2>
+            <p>Wähle einen Drum-Chart aus. Der Player öffnet sich erst, wenn du den ausgewählten Song startest.</p>
+            <div class="start-readout" aria-hidden="true">
+              <span>Q W E</span>
+              <span>A S D F</span>
+              <span>SPACE C</span>
+            </div>
+          </div>
+          <div class="start-selection" aria-label="Selected chart">
+            <span>Bereit</span>
+            <strong id="selectedSongTitle">-</strong>
+            <small id="selectedSongMeta">-</small>
+            <button id="selectedSongPlay" class="selected-play" type="button">
+              <i class="fa-solid fa-play" aria-hidden="true"></i>
+              Song starten
+            </button>
+          </div>
+        </section>
+
+        <section class="song-browser" aria-label="Song library">
+          <div class="library-toolbar">
+            <label class="library-search">
+              <span>Suche</span>
+              <input id="songSearch" type="search" autocomplete="off" placeholder="Track suchen">
+            </label>
+            <div class="library-tabs" aria-label="Library filter">
+              <button class="library-tab is-active" type="button" data-library-filter="all">Alle</button>
+              <button class="library-tab" type="button" data-library-filter="imported">Importiert</button>
+            </div>
+          </div>
+          <div id="songList" class="song-list"></div>
+        </section>
+      </main>
+
+      <main class="workspace">
+        <section class="playfield" aria-label="Drum chart workspace">
+          <div class="progress-wrap" aria-label="Track progress">
+            <div id="progressBar" class="progress-bar"></div>
+          </div>
+
+          <div class="stage">
+            <aside class="lane-labels" aria-label="Drum lanes">
+              <div>CRASH</div>
+              <div>HI-HATS</div>
+              <div>RIDE</div>
+              <div>HIGH TOM</div>
+              <div>MID TOM</div>
+              <div>SNARE</div>
+              <div>LOW TOM</div>
+              <div>KICK</div>
+              <div>PEDAL HI-HAT</div>
+            </aside>
+
+            <section class="chart-shell" aria-label="Playable drum chart">
+              <canvas id="chart" width="1500" height="720"></canvas>
+              <div class="seek-controls" aria-label="Taktweise springen">
+                <button id="seekBackBtn" class="seek-btn" type="button" aria-label="Einen Takt zurück">
+                  <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                </button>
+                <button id="seekForwardBtn" class="seek-btn" type="button" aria-label="Einen Takt vor">
+                  <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                </button>
+              </div>
+              <div class="hit-line" aria-hidden="true"></div>
+              <section id="completionOverlay" class="completion-overlay" aria-hidden="true" aria-label="Song stats">
+                <div class="completion-card">
+                  <div class="completion-kicker">Song complete</div>
+                  <h2 id="completionTitle">Finished</h2>
+                  <div class="completion-score">
+                    <span>Score</span>
+                    <strong id="completionScore">0</strong>
+                  </div>
+                  <div class="completion-stats">
+                    <div style="--i: 0">
+                      <span>Hits</span>
+                      <strong id="completionHits">0</strong>
+                    </div>
+                    <div style="--i: 1">
+                      <span>Miss</span>
+                      <strong id="completionMisses">0</strong>
+                    </div>
+                    <div style="--i: 2">
+                      <span>Accuracy</span>
+                      <strong id="completionAccuracy">0%</strong>
+                    </div>
+                  </div>
+                  <div class="completion-actions">
+                    <button id="completionReplay" class="completion-btn primary" type="button">
+                      <i class="fa-solid fa-repeat" aria-hidden="true"></i>
+                      Replay
+                    </button>
+                    <button id="completionLibrary" class="completion-btn" type="button">
+                      <i class="fa-solid fa-book" aria-hidden="true"></i>
+                      Library
+                    </button>
+                  </div>
+                </div>
+              </section>
+              <div class="lane-buttons" aria-label="Lane hit buttons">
+                <button data-lane="crash" type="button">Q</button>
+                <button data-lane="hihat" type="button">W</button>
+                <button data-lane="ride" type="button">E</button>
+                <button data-lane="highTom" type="button">A</button>
+                <button data-lane="midTom" type="button">S</button>
+                <button data-lane="snare" type="button">D</button>
+                <button data-lane="lowTom" type="button">F</button>
+                <button data-lane="kick" type="button">Space</button>
+                <button data-lane="pedalHat" type="button">C</button>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <aside class="settings-panel" aria-label="Practice settings">
+          <section class="performance-panel" aria-label="Score">
+            <div class="score-main">
+              <span>Score</span>
+              <strong id="score">0</strong>
+            </div>
+            <div class="stat-grid">
+              <div>
+                <span>Combo</span>
+                <strong id="combo">0</strong>
+              </div>
+              <div>
+                <span>Accuracy</span>
+                <strong id="accuracy">100%</strong>
+              </div>
+            </div>
+            <div class="timing-pill">
+              <span>Timing</span>
+              <strong id="judgement">Ready</strong>
+            </div>
+          </section>
+
+          <div class="controls">
+            <div class="control-stepper" data-setting="zoom">
+              <div>
+                <span><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>Zoom</span>
+                <strong id="zoomLabel">120%</strong>
+              </div>
+              <div class="stepper-actions">
+                <button class="step-btn" data-control="zoom" data-delta="-5" type="button" aria-label="Zoom decrease">-</button>
+                <button class="step-btn plus" data-control="zoom" data-delta="5" type="button" aria-label="Zoom increase">+</button>
+              </div>
+              <input id="zoomRange" class="control-range" type="range" min="70" max="180" value="120" step="5" aria-hidden="true" tabindex="-1">
+            </div>
+            <div class="control-stepper" data-setting="speed">
+              <div>
+                <span><i class="fa-solid fa-gauge" aria-hidden="true"></i>Speed</span>
+                <strong id="speedLabel">100%</strong>
+              </div>
+              <div class="stepper-actions">
+                <button class="step-btn" data-control="speed" data-delta="-5" type="button" aria-label="Speed decrease">-</button>
+                <button class="step-btn plus" data-control="speed" data-delta="5" type="button" aria-label="Speed increase">+</button>
+              </div>
+              <input id="speedRange" class="control-range" type="range" min="50" max="150" value="100" step="5" aria-hidden="true" tabindex="-1">
+            </div>
+            <div class="control-stepper" data-setting="backing">
+              <div>
+                <span><i class="fa-solid fa-volume" aria-hidden="true"></i>Backing</span>
+                <strong id="backingVolumeLabel">25%</strong>
+              </div>
+              <div class="stepper-actions">
+                <button class="step-btn" data-control="backingVolume" data-delta="-5" type="button" aria-label="Backing decrease">-</button>
+                <button class="step-btn plus" data-control="backingVolume" data-delta="5" type="button" aria-label="Backing increase">+</button>
+              </div>
+              <input id="backingVolumeRange" class="control-range" type="range" min="0" max="70" value="25" step="5" aria-hidden="true" tabindex="-1">
+            </div>
+            <div class="control-stepper" data-setting="hitWindow">
+              <div>
+                <span><i class="fa-brands fa-mixer" aria-hidden="true"></i>Accuracy</span>
+                <strong id="hitWindowLabel">Medium</strong>
+              </div>
+              <div class="preset-actions" aria-label="Accuracy presets">
+                <button class="preset-btn" data-accuracy="easy" type="button" aria-label="Easy accuracy">
+                  <i class="fa-solid fa-sun" aria-hidden="true"></i>
+                </button>
+                <button class="preset-btn is-selected" data-accuracy="medium" type="button" aria-label="Medium accuracy">
+                  <i class="fa-solid fa-cloud-sun" aria-hidden="true"></i>
+                </button>
+                <button class="preset-btn" data-accuracy="precise" type="button" aria-label="Precise accuracy">
+                  <i class="fa-solid fa-cloud-bolt" aria-hidden="true"></i>
+                </button>
+              </div>
+              <input id="hitWindowRange" class="control-range" type="range" min="40" max="180" value="95" step="5" aria-hidden="true" tabindex="-1">
+            </div>
+            <div class="switch-row">
+              <div class="switch-copy">
+                <i class="fa-solid fa-drum" aria-hidden="true"></i>
+                <span>Count-in</span>
+                <strong id="countInLabel">1 2 3</strong>
+              </div>
+              <button id="countInToggle" class="switch-control is-on" type="button" aria-pressed="true" aria-label="Count-in on or off">
+                <span></span>
+              </button>
+            </div>
+
+            <section id="loopPanel" class="loop-panel" aria-label="Loop settings">
+              <button id="loopToggle" class="loop-header" type="button" aria-expanded="false">
+                <span><i class="fa-solid fa-repeat" aria-hidden="true"></i>Loop</span>
+                <strong id="loopLabel">Off</strong>
+              </button>
+              <div id="loopRange" class="loop-range" aria-label="Loop range">
+                <div class="mini-stepper">
+                  <span>Start</span>
+                  <div>
+                    <button class="step-btn" data-control="loopStart" data-delta="-1" type="button" aria-label="Loop start decrease">-</button>
+                    <strong id="loopStartLabel">1</strong>
+                    <button class="step-btn plus" data-control="loopStart" data-delta="1" type="button" aria-label="Loop start increase">+</button>
+                  </div>
+                </div>
+                <div class="mini-stepper">
+                  <span>Ende</span>
+                  <div>
+                    <button class="step-btn" data-control="loopEnd" data-delta="-1" type="button" aria-label="Loop end decrease">-</button>
+                    <strong id="loopEndLabel">4</strong>
+                    <button class="step-btn plus" data-control="loopEnd" data-delta="1" type="button" aria-label="Loop end increase">+</button>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <script src="./imported-one-way-midi.js"></script>
+    <script src="./imported-schlaf-gut-midi.js"></script>
+    <script src="./imported-hunnybee-midi.js"></script>
+    <script src="./imported-toms-diner-midi.js"></script>
+    <script src="./imported-quicksand-midi.js"></script>
+    <script src="./imported-morning-blue-midi.js"></script>
+    <script src="./imported-dussmann-midi.js"></script>
+    <script src="./imported-bella-napoli-midi.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
