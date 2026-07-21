@@ -8,6 +8,9 @@
       const strkTheme = localStorage.getItem("strk-theme") || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
       document.documentElement.dataset.theme = strkTheme;
     </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400..850&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>

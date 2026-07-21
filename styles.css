@@ -1,18 +1,19 @@
 :root {
   color-scheme: dark;
-  --font-ui: "Aptos", "SF Pro Text", "Segoe UI Variable", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Arial Black", "Aptos Display", "SF Pro Display", var(--font-ui);
+  --font-ui: "Manrope", "SF Pro Text", "Segoe UI Variable", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-ui);
+  --type-2xs: 0.625rem;
   --type-xs: 0.6875rem;
-  --type-sm: 0.75rem;
+  --type-sm: 0.8125rem;
   --type-md: 0.875rem;
   --type-base: 1rem;
-  --type-lg: 1.125rem;
-  --type-xl: 1.5rem;
-  --type-display: 3.25rem;
+  --type-lg: 1.1875rem;
+  --type-xl: 1.625rem;
+  --type-display: 3rem;
   --weight-regular: 500;
   --weight-label: 700;
-  --weight-strong: 800;
-  --weight-display: 900;
+  --weight-strong: 780;
+  --weight-display: 850;
   --bg: oklch(13% 0.018 175);
   --app: oklch(15% 0.018 175);
   --surface: oklch(18% 0.02 175);
@@ -94,7 +95,7 @@ body {
   font-family: var(--font-ui);
   font-size: var(--type-base);
   font-kerning: normal;
-  font-feature-settings: "kern" 1, "tnum" 1;
+  font-feature-settings: "kern" 1, "tnum" 1, "ss01" 1;
   letter-spacing: 0;
   overflow: hidden;
 }
@@ -462,8 +463,9 @@ p {
   margin-top: 3px;
   color: var(--cue);
   font-size: var(--type-xs);
-  line-height: 1;
+  line-height: 1.15;
   font-weight: var(--weight-label);
+  letter-spacing: 0.045em;
   text-transform: uppercase;
 }
 
@@ -473,8 +475,9 @@ p {
   overflow: hidden;
   color: var(--muted);
   font-size: var(--type-2xs);
-  line-height: 1;
+  line-height: 1.15;
   font-weight: var(--weight-label);
+  letter-spacing: 0.045em;
   text-overflow: ellipsis;
   white-space: nowrap;
   text-transform: uppercase;
@@ -811,7 +814,7 @@ p {
 
 .song-card.is-selected {
   background: var(--cue-wash);
-  box-shadow: inset 3px 0 0 var(--cue);
+  box-shadow: none;
   animation: selectedRow 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -1170,8 +1173,9 @@ canvas {
 .completion-stats span {
   display: block;
   font-size: var(--type-xs);
-  line-height: 1;
+  line-height: 1.15;
   font-weight: var(--weight-label);
+  letter-spacing: 0.045em;
   text-transform: uppercase;
 }
 
@@ -1703,7 +1707,7 @@ canvas {
 .mini-stepper span {
   color: var(--muted);
   font-size: var(--type-xs);
-  line-height: 1;
+  line-height: 1.15;
 }
 
 .mini-stepper div {
