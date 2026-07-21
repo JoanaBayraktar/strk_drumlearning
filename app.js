@@ -1043,7 +1043,6 @@ function updatePlaybackSounds() {
     if (!isEventInPracticeRange(event)) continue;
     if (!event.played && now >= event.time) {
       event.played = true;
-      if (now - event.time <= 180) playDrum(event.lane, 0.7, event.variant);
     }
     if (event.time - now > 180) break;
   }
