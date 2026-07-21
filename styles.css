@@ -1,6 +1,6 @@
 :root {
   color-scheme: dark;
-  --font-ui: "Manrope", "SF Pro Text", "Segoe UI Variable", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --font-ui: "Sora", "SF Pro Text", "Segoe UI Variable", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-ui);
   --type-2xs: 0.625rem;
   --type-xs: 0.6875rem;
@@ -12,8 +12,8 @@
   --type-display: 3rem;
   --weight-regular: 500;
   --weight-label: 700;
-  --weight-strong: 780;
-  --weight-display: 850;
+  --weight-strong: 760;
+  --weight-display: 800;
   --bg: oklch(13% 0.018 175);
   --app: oklch(15% 0.018 175);
   --surface: oklch(18% 0.02 175);
@@ -1346,6 +1346,11 @@ canvas {
   align-items: center;
   gap: var(--space-2);
   min-width: 0;
+  color: var(--subtle);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-label);
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
 }
 
 .control-stepper span i {
@@ -1439,7 +1444,6 @@ canvas {
 .control-stepper[data-setting="speed"] {
   margin-top: var(--space-2);
   padding-top: var(--space-3);
-  border-top: 1px solid var(--border-strong);
 }
 
 .control-stepper[data-setting="hitWindow"],
@@ -1459,12 +1463,17 @@ canvas {
 .control-stepper strong {
   display: block;
   grid-column: 2;
-  margin-top: 2px;
+  margin-top: 4px;
   color: var(--text);
-  font-size: var(--type-sm);
-  line-height: 1;
+  font-size: var(--type-base);
+  line-height: 1.05;
   font-weight: var(--weight-strong);
   font-variant-numeric: tabular-nums;
+}
+
+.control-stepper[data-setting="speed"] strong,
+.control-stepper[data-setting="hitWindow"] strong {
+  font-size: var(--type-lg);
 }
 
 .stepper-actions {
@@ -1579,13 +1588,15 @@ canvas {
   font-size: var(--type-xs);
   line-height: 1.2;
   font-weight: var(--weight-label);
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
 }
 
 .switch-copy strong {
   grid-column: 2;
   color: var(--text);
-  font-size: var(--type-sm);
-  line-height: 1;
+  font-size: var(--type-base);
+  line-height: 1.05;
   font-weight: var(--weight-strong);
 }
 

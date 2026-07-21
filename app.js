@@ -1440,7 +1440,7 @@ function drawSeekHint(hitX, laneAreaHeight, now) {
   const label = `Start ${formatTime(now)}`;
   ctx.save();
   ctx.globalAlpha = Math.max(0, alpha);
-  ctx.font = "850 12px Manrope, system-ui, sans-serif";
+  ctx.font = "800 12px Sora, system-ui, sans-serif";
   const width = ctx.measureText(label).width + 22;
   const x = Math.max(10, hitX - width / 2);
   const y = Math.max(14, Math.min(laneAreaHeight - 38, 18));
@@ -1499,7 +1499,7 @@ function drawHitEffects(hitX, laneHeight, laneAreaHeight) {
       const labelY = y - 18 - eased * 6;
       ctx.globalAlpha = alpha * 0.86;
       ctx.shadowBlur = 0;
-      ctx.font = "800 12px Manrope, system-ui, sans-serif";
+      ctx.font = "760 12px Sora, system-ui, sans-serif";
       const labelWidth = ctx.measureText(effect.timing).width + 12;
       ctx.fillStyle = colors.labelBg;
       ctx.beginPath();
@@ -1541,7 +1541,7 @@ function drawLoopRegion(width, laneAreaHeight, hitX, pxPerMs, now) {
     ctx.lineTo(mark.x, laneAreaHeight);
     ctx.stroke();
 
-    ctx.font = "800 12px Manrope, system-ui, sans-serif";
+    ctx.font = "760 12px Sora, system-ui, sans-serif";
     const labelWidth = ctx.measureText(mark.label).width + 18;
     const labelX = Math.max(8, Math.min(width - labelWidth - 8, mark.x + 8));
     ctx.fillStyle = colors.labelBg;
