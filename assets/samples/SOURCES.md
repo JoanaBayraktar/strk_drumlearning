@@ -1,8 +1,13 @@
 # STRK Prototype Sample Sources
 
 Drum samples:
+- Source: 99Sounds, 99 Drum Samples
+- Files used: `kick-acoustic02.wav`, `snare-acoustic02.wav`, `hihat-acoustic02.wav`, `openhat-acoustic01.wav`, `crash-acoustic.wav`, `ride-acoustic02.wav`, `tom-acoustic02.wav`
+- Local import path: `/Users/joanabayraktar/Downloads/[99Sounds] 99 Drum Samples/Samples`
+
+Legacy drum samples still present in the prototype folder:
 - Source: danigb/samples, `audio/drum-machines/808-mini`
-- Files used: kick, snare, closed hi-hat, open hi-hat, crash, ride, high tom, mid tom, low tom
+- Files present: kick, snare, closed hi-hat, open hi-hat, crash, ride, high tom, mid tom, low tom
 - URL: https://github.com/danigb/samples
 
 Bass sample:

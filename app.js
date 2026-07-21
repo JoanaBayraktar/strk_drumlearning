@@ -22,16 +22,16 @@ const accuracyPresets = {
 const tracks = importedTracks;
 
 const sampleManifest = {
-  kick: { url: "./assets/samples/808-kick.ogg" },
-  snare: { url: "./assets/samples/808-snare.ogg" },
-  hihatClosed: { url: "./assets/samples/808-hhclosed.ogg" },
-  hihatOpen: { url: "./assets/samples/808-hhopen.ogg" },
-  pedalHat: { url: "./assets/samples/808-hhclosed.ogg" },
-  crash: { url: "./assets/samples/808-crash.ogg" },
-  ride: { url: "./assets/samples/808-ride.ogg" },
-  highTom: { url: "./assets/samples/808-tom-high.ogg" },
-  midTom: { url: "./assets/samples/808-tom-mid.ogg" },
-  lowTom: { url: "./assets/samples/808-tom-low.ogg" },
+  kick: { url: "./assets/samples/kick-acoustic02.wav" },
+  snare: { url: "./assets/samples/snare-acoustic02.wav" },
+  hihatClosed: { url: "./assets/samples/hihat-acoustic02.wav" },
+  hihatOpen: { url: "./assets/samples/openhat-acoustic01.wav" },
+  pedalHat: { url: "./assets/samples/hihat-acoustic02.wav" },
+  crash: { url: "./assets/samples/crash-acoustic.wav" },
+  ride: { url: "./assets/samples/ride-acoustic02.wav" },
+  highTom: { url: "./assets/samples/tom-acoustic02.wav", rate: 1.18 },
+  midTom: { url: "./assets/samples/tom-acoustic02.wav", rate: 1 },
+  lowTom: { url: "./assets/samples/tom-acoustic02.wav", rate: 0.82 },
   bass: { url: "./assets/samples/pastabass-bb2.ogg", rootNote: 46 },
   rhythmGuitar: { url: "./assets/samples/emilyguitar-rhythm-42.wav", rootNote: 42 },
   leadGuitar: { url: "./assets/samples/emilyguitar-lead-57.wav", rootNote: 57 }
@@ -976,7 +976,8 @@ function playDrum(laneId, accent = 1, variant = "") {
     laneId === "pedalHat" ? 0.9 :
     1.45
   );
-  if (playSample(sampleId, sampleVolume)) return;
+  const sample = sampleManifest[sampleId];
+  if (playSample(sampleId, sampleVolume, { rate: sample?.rate || 1 })) return;
 
   if (laneId === "kick") {
     playOsc("sine", 115, 42, volume * 1.4, 0.18);
