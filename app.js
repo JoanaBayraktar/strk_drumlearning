@@ -104,7 +104,8 @@ const state = {
   midiConnected: false,
   midiDeviceName: "",
   midiLastNote: "",
-  audioUnlocked: false
+  audioUnlocked: false,
+  audioUnlocking: null
 };
 
 const els = {
@@ -442,8 +443,8 @@ function beginPlayback(forceStart = false) {
   els.play.classList.add("is-playing");
 }
 
-function togglePlay() {
-  ensureAudio();
+async function togglePlay() {
+  await ensureAudio();
   if (state.playing) {
     state.pausedAt = currentTime();
     state.playing = false;
@@ -777,10 +778,18 @@ function stepControl(control, delta) {
   }
 }
 
-function ensureAudio() {
+async function ensureAudio() {
   if (!state.audio) state.audio = new (window.AudioContext || window.webkitAudioContext)();
-  if (state.audio.state === "suspended") state.audio.resume();
-  unlockAudioOutput();
+  if (state.audio.state === "suspended") {
+    try {
+      await state.audio.resume();
+    } catch (error) {
+      state.audioUnlocked = false;
+      console.warn("Audio unlock blocked", error);
+      return null;
+    }
+  }
+  await unlockAudioOutput();
   preloadSamples();
   if (!state.noiseBuffer) {
     const length = Math.floor(state.audio.sampleRate * 0.25);
@@ -789,20 +798,35 @@ function ensureAudio() {
     for (let i = 0; i < length; i++) data[i] = Math.random() * 2 - 1;
     state.noiseBuffer = buffer;
   }
+  return state.audio;
 }
 
 function unlockAudioOutput() {
-  if (!state.audio || state.audioUnlocked) return;
+  if (!state.audio || state.audioUnlocked || state.audioUnlocking) return state.audioUnlocking;
   const now = state.audio.currentTime;
   const source = state.audio.createBufferSource();
   const buffer = state.audio.createBuffer(1, 1, state.audio.sampleRate);
   const gain = state.audio.createGain();
+  const oscillator = state.audio.createOscillator();
+  const oscillatorGain = state.audio.createGain();
   gain.gain.setValueAtTime(0.0001, now);
+  oscillatorGain.gain.setValueAtTime(0.0001, now);
+  oscillator.frequency.setValueAtTime(440, now);
   source.buffer = buffer;
   source.connect(gain).connect(state.audio.destination);
+  oscillator.connect(oscillatorGain).connect(state.audio.destination);
   source.start(now);
   source.stop(now + 0.01);
-  state.audioUnlocked = true;
+  oscillator.start(now);
+  oscillator.stop(now + 0.02);
+  state.audioUnlocking = new Promise((resolve) => {
+    oscillator.onended = () => {
+      state.audioUnlocked = true;
+      state.audioUnlocking = null;
+      resolve();
+    };
+  });
+  return state.audioUnlocking;
 }
 
 function preloadSamples() {
@@ -1006,8 +1030,8 @@ function playBadHit() {
   playOsc("sawtooth", 130, 80, 0.045, 0.08);
 }
 
-function hitLane(laneId) {
-  ensureAudio();
+async function hitLane(laneId) {
+  await ensureAudio();
   const now = currentTime();
   if (now < practiceStartTime()) return;
   const candidates = state.events
