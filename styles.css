@@ -427,7 +427,6 @@ p {
 
 .icon-btn:focus-visible,
 .library-btn:focus-visible,
-.lane-buttons button:focus-visible,
 .seek-btn:focus-visible,
 .step-btn:focus-visible,
 .preset-btn:focus-visible,
@@ -960,7 +959,7 @@ p {
 }
 
 .lane-labels {
-  padding: 0 var(--space-4) 60px;
+  padding: 0 var(--space-4);
   display: grid;
   grid-template-rows: repeat(9, 1fr);
   align-items: center;
@@ -991,7 +990,7 @@ canvas {
 .seek-controls {
   position: absolute;
   left: 50%;
-  bottom: 84px;
+  bottom: var(--space-5);
   z-index: 4;
   display: inline-grid;
   grid-template-columns: repeat(2, 42px);
@@ -1041,7 +1040,7 @@ canvas {
 .hit-line {
   position: absolute;
   top: 10px;
-  bottom: 60px;
+  bottom: 10px;
   left: 38%;
   width: 3px;
   background: linear-gradient(180deg, var(--cue), oklch(78% 0.18 126 / 0.72));
@@ -1070,43 +1069,6 @@ canvas {
     0 0 0 4px var(--shadow-hard),
     0 0 18px var(--cue-soft);
   transform: translate(-50%, -50%);
-}
-
-.lane-buttons {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 60px;
-  display: grid;
-  grid-template-columns: repeat(9, minmax(0, 1fr));
-  gap: var(--space-2);
-  padding: var(--space-3);
-  background: oklch(10% 0.016 175 / 0.94);
-  border-top: 1px solid var(--border);
-}
-
-.lane-buttons button {
-  min-width: 0;
-  border: 0;
-  border-radius: var(--radius-2);
-  background: var(--control);
-  color: var(--text);
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  font-size: var(--type-md);
-  line-height: 1;
-  font-weight: var(--weight-label);
-}
-
-.lane-buttons button:hover {
-  background: var(--control-hover);
-}
-
-.lane-buttons button.pressed {
-  background: var(--cue);
-  color: var(--ink-on-cue);
 }
 
 .completion-overlay {
@@ -1340,7 +1302,9 @@ canvas {
   overflow: hidden;
   border: 0;
   border-radius: var(--radius-3);
-  background: var(--surface);
+  background:
+    linear-gradient(180deg, var(--surface-2), var(--surface) 42%),
+    var(--surface);
   display: flex;
   flex-direction: column;
 }
@@ -1376,14 +1340,18 @@ canvas {
 }
 
 .control-stepper span {
-  display: flex;
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
   align-items: center;
-  gap: 6px;
+  gap: var(--space-2);
+  min-width: 0;
 }
 
 .control-stepper span i {
-  width: 13px;
-  height: 13px;
+  width: 17px;
+  height: 17px;
+  color: var(--cue);
 }
 
 .score-main strong {
@@ -1438,30 +1406,62 @@ canvas {
 }
 
 .controls {
-  display: grid;
-  padding: var(--space-2);
-  gap: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-3);
+  gap: 0;
 }
 
 .control-stepper {
   min-width: 0;
-  min-height: 56px;
-  padding: var(--space-2) var(--space-3);
-  display: flex;
+  min-height: 50px;
+  padding: var(--space-2) 0;
+  display: grid;
+  grid-template-columns: minmax(96px, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-3);
-  border-radius: var(--radius-2);
-  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  background: transparent;
   color: var(--muted);
   font-size: var(--type-md);
 }
 
+.control-stepper[data-setting="speed"],
+.control-stepper[data-setting="hitWindow"] {
+  min-height: 56px;
+}
+
+.control-stepper[data-setting="speed"] strong,
+.control-stepper[data-setting="hitWindow"] strong {
+  color: var(--cue);
+}
+
+.control-stepper[data-setting="speed"] {
+  margin-top: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-strong);
+}
+
+.control-stepper[data-setting="hitWindow"],
+.switch-row {
+  margin-top: var(--space-2);
+  padding-top: var(--space-3);
+}
+
+.control-stepper > div:first-child {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  column-gap: var(--space-2);
+  align-items: center;
+}
+
 .control-stepper strong {
   display: block;
-  margin-top: var(--space-1);
+  grid-column: 2;
+  margin-top: 2px;
   color: var(--text);
-  font-size: var(--type-base);
+  font-size: var(--type-sm);
   line-height: 1;
   font-weight: var(--weight-strong);
   font-variant-numeric: tabular-nums;
@@ -1469,21 +1469,24 @@ canvas {
 
 .stepper-actions {
   display: inline-grid;
-  grid-template-columns: repeat(2, 34px);
-  gap: var(--space-2);
+  grid-template-columns: repeat(2, 30px);
+  gap: var(--space-1);
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--control);
 }
 
 .step-btn {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   border: 0;
   border-radius: 999px;
-  background: var(--surface-3);
+  background: transparent;
   color: var(--text);
   cursor: pointer;
   display: grid;
   place-items: center;
-  font-size: 1.25rem;
+  font-size: var(--type-lg);
   line-height: 1;
   font-weight: var(--weight-label);
   transition: background 140ms ease, color 140ms ease, transform 140ms ease;
@@ -1506,7 +1509,7 @@ canvas {
   display: inline-grid;
   grid-template-columns: repeat(3, 30px);
   gap: var(--space-1);
-  padding: 3px;
+  padding: 2px;
   border-radius: 999px;
   background: var(--control);
 }
@@ -1542,32 +1545,33 @@ canvas {
 
 .switch-row {
   min-width: 0;
-  min-height: 56px;
-  border-radius: var(--radius-2);
-  padding: var(--space-2) var(--space-3);
-  display: flex;
+  min-height: 52px;
+  padding: var(--space-2) 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-3);
-  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  background: transparent;
 }
 
 .switch-copy {
   min-width: 0;
   display: grid;
-  grid-template-columns: 16px minmax(0, 1fr);
-  column-gap: 7px;
-  row-gap: 3px;
+  grid-template-columns: 28px minmax(0, 1fr);
+  column-gap: var(--space-2);
+  row-gap: 2px;
   align-items: center;
   color: var(--muted);
 }
 
 .switch-copy i,
 .loop-header i {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   display: block;
   background: currentColor;
+  color: var(--cue);
 }
 
 .switch-copy span,
@@ -1580,7 +1584,7 @@ canvas {
 .switch-copy strong {
   grid-column: 2;
   color: var(--text);
-  font-size: var(--type-base);
+  font-size: var(--type-sm);
   line-height: 1;
   font-weight: var(--weight-strong);
 }
@@ -1624,18 +1628,19 @@ canvas {
 .loop-panel {
   min-width: 0;
   overflow: hidden;
-  border-radius: var(--radius-2);
-  background: var(--surface-2);
+  margin-top: var(--space-3);
+  border-radius: var(--radius-3);
+  background: var(--control);
 }
 
 .loop-header {
   width: 100%;
-  min-height: 50px;
+  min-height: 48px;
   border: 0;
-  padding: var(--space-2) var(--space-3);
-  display: flex;
+  padding: var(--space-2);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-3);
   background: transparent;
   color: var(--muted);
@@ -1644,9 +1649,10 @@ canvas {
 }
 
 .loop-header span {
+  min-width: 0;
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: var(--space-2);
 }
 
 .loop-header strong {
@@ -1664,8 +1670,8 @@ canvas {
 
 .loop-panel.is-on {
   background:
-    linear-gradient(180deg, var(--cue-wash), transparent 55%),
-    var(--surface-2);
+    linear-gradient(180deg, var(--cue-wash), transparent 72%),
+    var(--control);
 }
 
 .loop-panel.is-on .loop-header {
@@ -1681,16 +1687,16 @@ canvas {
   max-height: 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-2);
+  gap: var(--space-1);
   overflow: hidden;
-  padding: 0 var(--space-2);
+  padding: 0 var(--space-1);
   opacity: 0;
   transition: max-height 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 140ms ease, padding 180ms ease;
 }
 
 .loop-panel.is-on .loop-range {
-  max-height: 92px;
-  padding: 0 var(--space-2) var(--space-2);
+  max-height: 84px;
+  padding: 0 var(--space-1) var(--space-1);
   opacity: 1;
 }
 
@@ -1698,7 +1704,7 @@ canvas {
   min-width: 0;
   padding: var(--space-2);
   border-radius: var(--radius-2);
-  background: var(--control);
+  background: var(--surface);
   display: grid;
   align-content: center;
   gap: var(--space-2);
@@ -1859,7 +1865,6 @@ canvas {
   }
 
   .controls {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
     padding: var(--space-2);
   }
 
@@ -1867,21 +1872,13 @@ canvas {
     max-height: 230px;
   }
 
-  .switch-row,
-  .loop-panel {
-    grid-column: 1 / -1;
-  }
-
   .performance-panel {
     display: none;
   }
 
   .control-stepper {
-    min-height: 62px;
+    min-height: 50px;
     padding: var(--space-2);
-    align-items: stretch;
-    flex-direction: column;
-    gap: var(--space-2);
   }
 
   .control-stepper strong {
@@ -1889,7 +1886,7 @@ canvas {
   }
 
   .stepper-actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, 30px);
   }
 
   .stage {
@@ -1897,21 +1894,16 @@ canvas {
   }
 
   .lane-labels {
-    padding: 0 var(--space-3) 132px;
+    padding: 0 var(--space-3);
     font-size: var(--type-sm);
   }
 
-  .lane-buttons {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    height: 108px;
-  }
-
   .seek-controls {
-    bottom: 124px;
+    bottom: var(--space-5);
   }
 
   .hit-line {
-    bottom: 108px;
+    bottom: 10px;
   }
 
   .completion-overlay {
@@ -2041,25 +2033,12 @@ canvas {
   }
 
   .lane-labels {
-    padding: 0 var(--space-2) 32px;
+    padding: 0 var(--space-2);
     font-size: 0.625rem;
   }
 
-  .lane-buttons {
-    grid-template-columns: repeat(9, minmax(0, 1fr));
-    height: 32px;
-    gap: var(--space-1);
-    padding: 4px var(--space-2);
-  }
-
-  .lane-buttons button {
-    align-content: start;
-    padding-top: 3px;
-    font-size: 0.5625rem;
-  }
-
   .seek-controls {
-    bottom: 42px;
+    bottom: var(--space-2);
     grid-template-columns: repeat(2, 36px);
   }
 
@@ -2069,7 +2048,7 @@ canvas {
   }
 
   .hit-line {
-    bottom: 32px;
+    bottom: 8px;
   }
 
   .settings-panel {
@@ -2088,19 +2067,22 @@ canvas {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     padding: var(--space-1);
     gap: var(--space-1);
+    display: grid;
   }
 
   .control-stepper {
     min-height: 56px;
-    padding: 6px var(--space-2);
-    align-items: center;
-    flex-direction: row;
+    padding: var(--space-1) var(--space-2);
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: var(--space-1);
+    margin-top: 0;
+    border-top: 0;
   }
 
   .control-stepper span {
     font-size: 0;
     gap: 0;
+    grid-template-columns: 18px;
   }
 
   .control-stepper span i {
