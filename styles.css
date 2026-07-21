@@ -860,12 +860,35 @@ p {
 }
 
 .song-artist {
-  display: block;
+  min-width: 0;
+  flex: 0 1 auto;
   overflow: hidden;
   color: var(--muted);
   font-size: var(--type-base);
   line-height: 1.25;
   font-weight: var(--weight-regular);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.song-line {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.song-inline-meta {
+  min-width: 0;
+  flex: 0 1 auto;
+  overflow: hidden;
+  color: var(--subtle);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-label);
+  line-height: 1.2;
+  opacity: 0.58;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1820,6 +1843,15 @@ canvas {
 
   .song-artist {
     font-size: var(--type-md);
+  }
+
+  .song-line {
+    gap: var(--space-1);
+  }
+
+  .song-inline-meta {
+    font-size: 0.625rem;
+    opacity: 0.54;
   }
 
   .controls {

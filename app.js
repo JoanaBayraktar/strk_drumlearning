@@ -579,6 +579,7 @@ function renderSongCards() {
 
   for (const track of visibleTracks) {
     const display = trackDisplayParts(track);
+    const meta = trackMeta(track);
     const button = document.createElement("button");
     button.type = "button";
     button.className = `song-card${track.id === state.selectedTrackId ? " is-selected" : ""}`;
@@ -588,11 +589,15 @@ function renderSongCards() {
       <span class="song-icon"><i class="fa-solid fa-music" aria-hidden="true"></i></span>
       <span class="song-main">
         <span class="song-title"></span>
-        <span class="song-artist"></span>
+        <span class="song-line">
+          <span class="song-artist"></span>
+          <span class="song-inline-meta"></span>
+        </span>
       </span>
     `;
     button.querySelector(".song-title").textContent = display.title;
     button.querySelector(".song-artist").textContent = display.subtitle;
+    button.querySelector(".song-inline-meta").textContent = `${meta.bpm} / ${meta.duration} / ${meta.notes}`;
     button.addEventListener("click", () => selectLibraryTrack(track.id));
     els.songList.appendChild(button);
   }
