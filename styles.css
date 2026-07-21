@@ -140,6 +140,10 @@ input {
   flex: 0 0 auto;
 }
 
+:root[data-theme="light"] .app-logo {
+  filter: invert(1);
+}
+
 .library-btn {
   margin-left: 0;
   width: 40px;
@@ -222,6 +226,7 @@ p {
   grid-template-columns: 42px 52px 42px 42px;
   align-items: center;
   gap: var(--space-2);
+  min-height: 60px;
   padding: var(--space-1) var(--space-2);
   border: 0;
   border-radius: 999px;
@@ -271,7 +276,7 @@ p {
 .midi-btn.is-connected {
   color: var(--ink);
   background: var(--accent);
-  box-shadow: 0 0 0 1px var(--ink), 0 8px 0 var(--ink), 0 18px 36px color-mix(in oklch, var(--accent), transparent 58%);
+  box-shadow: 0 0 0 1px var(--ink), 0 3px 0 var(--ink), 0 14px 28px color-mix(in oklch, var(--accent), transparent 64%);
 }
 
 .icon-btn .fa-book,
@@ -1973,6 +1978,7 @@ canvas {
     align-self: center;
     grid-template-columns: 36px 44px 36px 36px;
     gap: var(--space-1);
+    min-height: 46px;
     padding: 0;
     background: transparent;
   }
