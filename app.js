@@ -37,6 +37,30 @@ const sampleManifest = {
   leadGuitar: { url: "./assets/samples/emilyguitar-lead-57.wav", rootNote: 57 }
 };
 
+const midiDrumMap = new Map([
+  [35, "kick"],
+  [36, "kick"],
+  [37, "snare"],
+  [38, "snare"],
+  [40, "snare"],
+  [42, "hihat"],
+  [44, "pedalHat"],
+  [46, "hihat"],
+  [26, "hihat"],
+  [49, "crash"],
+  [55, "crash"],
+  [57, "crash"],
+  [51, "ride"],
+  [53, "ride"],
+  [59, "ride"],
+  [48, "highTom"],
+  [50, "highTom"],
+  [45, "midTom"],
+  [47, "midTom"],
+  [41, "lowTom"],
+  [43, "lowTom"]
+]);
+
 const state = {
   track: null,
   events: [],
@@ -75,7 +99,11 @@ const state = {
   finishTimer: 0,
   seekHintUntil: 0,
   seekingWithPointer: false,
-  lastWheelSeek: 0
+  lastWheelSeek: 0,
+  midiAccess: null,
+  midiConnected: false,
+  midiDeviceName: "",
+  midiLastNote: ""
 };
 
 const els = {
@@ -87,6 +115,7 @@ const els = {
   play: document.getElementById("playBtn"),
   restart: document.getElementById("restartBtn"),
   mute: document.getElementById("muteBtn"),
+  midi: document.getElementById("midiBtn"),
   zoom: document.getElementById("zoomRange"),
   zoomLabel: document.getElementById("zoomLabel"),
   speed: document.getElementById("speedRange"),
@@ -106,6 +135,7 @@ const els = {
   completionLibrary: document.getElementById("completionLibrary"),
   currentSongTitle: document.getElementById("currentSongTitle"),
   currentSongBpm: document.getElementById("currentSongBpm"),
+  midiStatus: document.getElementById("midiStatus"),
   countInToggle: document.getElementById("countInToggle"),
   countInLabel: document.getElementById("countInLabel"),
   loopPanel: document.getElementById("loopPanel"),
@@ -637,6 +667,67 @@ function updatePlayerMeta() {
   const effectiveBpm = Math.round((state.track.bpm || 0) * state.speed);
   els.currentSongTitle.textContent = state.track.name;
   els.currentSongBpm.textContent = `${effectiveBpm || "?"} BPM`;
+  updateMidiStatus();
+}
+
+function updateMidiStatus() {
+  const status = state.midiConnected ? state.midiDeviceName || "MIDI bereit" : state.midiDeviceName || "MIDI aus";
+  const note = state.midiLastNote ? ` · ${state.midiLastNote}` : "";
+  els.midiStatus.textContent = `${status}${note}`;
+  els.midi.classList.toggle("is-connected", state.midiConnected);
+}
+
+async function connectMidi() {
+  if (!navigator.requestMIDIAccess) {
+    state.midiConnected = false;
+    state.midiDeviceName = "Web MIDI nicht verfügbar";
+    updateMidiStatus();
+    return;
+  }
+
+  try {
+    state.midiAccess = await navigator.requestMIDIAccess({ sysex: false });
+    state.midiAccess.onstatechange = refreshMidiInputs;
+    refreshMidiInputs();
+  } catch (error) {
+    state.midiConnected = false;
+    state.midiDeviceName = "MIDI nicht erlaubt";
+    updateMidiStatus();
+  }
+}
+
+function refreshMidiInputs() {
+  if (!state.midiAccess) return;
+  const inputs = [...state.midiAccess.inputs.values()];
+  state.midiConnected = inputs.length > 0;
+  state.midiDeviceName = inputs[0]?.name || "Kein MIDI-Gerät";
+  for (const input of inputs) {
+    input.onmidimessage = handleMidiMessage;
+  }
+  updateMidiStatus();
+}
+
+function handleMidiMessage(message) {
+  const [status, note, velocity] = message.data;
+  const command = status & 0xf0;
+  if (command !== 0x90 || velocity === 0) return;
+
+  const laneId = midiDrumMap.get(note);
+  if (!laneId) {
+    state.midiLastNote = `Note ${note}`;
+    updateMidiStatus();
+    return;
+  }
+
+  const lane = lanes.find((item) => item.id === laneId);
+  state.midiLastNote = `${lane?.label || laneId} ${note}`;
+  ensureAudio();
+  hitLane(laneId);
+
+  const button = els.laneButtons.find((item) => item.dataset.lane === laneId);
+  button?.classList.add("pressed");
+  window.setTimeout(() => button?.classList.remove("pressed"), 90);
+  updateMidiStatus();
 }
 
 function setLoopBar(which, delta) {
@@ -1497,6 +1588,7 @@ function init() {
   els.restart.addEventListener("click", restart);
   els.completionReplay.addEventListener("click", replayReady);
   els.completionLibrary.addEventListener("click", openStartScreen);
+  els.midi.addEventListener("click", connectMidi);
   els.mute.addEventListener("click", () => {
     state.muted = !state.muted;
     updateStats();
@@ -1601,6 +1693,7 @@ function init() {
   setAccuracyMode(state.accuracyMode);
   setTrack(state.selectedTrackId);
   updatePracticeControls();
+  updateMidiStatus();
   updateSelectedSongPanel();
   renderSongCards();
   resizeCanvas();

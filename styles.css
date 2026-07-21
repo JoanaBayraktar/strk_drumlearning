@@ -219,7 +219,7 @@ p {
 
 .transport {
   display: inline-grid;
-  grid-template-columns: 42px 52px 42px;
+  grid-template-columns: 42px 52px 42px 42px;
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-1) var(--space-2);
@@ -266,6 +266,12 @@ p {
 .icon-btn .fa-volume-xmark {
   width: 22px;
   height: 22px;
+}
+
+.midi-btn.is-connected {
+  color: var(--ink);
+  background: var(--accent);
+  box-shadow: 0 0 0 1px var(--ink), 0 8px 0 var(--ink), 0 18px 36px color-mix(in oklch, var(--accent), transparent 58%);
 }
 
 .icon-btn .fa-book,
@@ -432,7 +438,7 @@ p {
 .player-meta {
   justify-self: end;
   min-width: 0;
-  max-width: 300px;
+  max-width: 340px;
   text-align: right;
 }
 
@@ -454,6 +460,19 @@ p {
   font-size: var(--type-xs);
   line-height: 1;
   font-weight: var(--weight-label);
+  text-transform: uppercase;
+}
+
+.player-meta small {
+  display: block;
+  margin-top: 6px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--type-2xs);
+  line-height: 1;
+  font-weight: var(--weight-label);
+  text-overflow: ellipsis;
+  white-space: nowrap;
   text-transform: uppercase;
 }
 
