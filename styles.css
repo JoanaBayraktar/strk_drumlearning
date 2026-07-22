@@ -2262,9 +2262,9 @@ canvas {
   .start-selection {
     position: fixed;
     top: auto;
-    right: 0;
+    right: var(--space-3);
     bottom: 0;
-    left: 0;
+    left: var(--space-3);
     width: auto;
     padding: var(--space-3) var(--space-3) calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
     border-radius: 18px 18px 0 0;
@@ -2278,13 +2278,13 @@ canvas {
   }
 
   .start-selection small {
-    font-size: var(--type-2xs);
+    font-size: var(--type-sm);
     white-space: normal;
   }
 
   .selected-song-meta i {
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
   }
 
   .selected-play {
