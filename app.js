@@ -122,7 +122,9 @@ const state = {
   audioUnlocking: null,
   audioReady: null,
   lastTouchEnd: 0,
-  draggedSongId: ""
+  draggedSongId: "",
+  editingSongId: "",
+  songEditDraft: null
 };
 
 const els = {
@@ -540,7 +542,6 @@ function applyTheme(theme) {
   const isLight = nextTheme === "light";
   els.themeToggle.setAttribute("aria-pressed", String(isLight));
   els.themeToggle.setAttribute("aria-label", isLight ? "Dark mode einschalten" : "Light mode einschalten");
-  els.themeToggle.querySelector("span").textContent = isLight ? "Light" : "Dark";
   if (state.track) draw();
 }
 
@@ -657,6 +658,41 @@ function updateSongEdit(trackId, patch) {
   updateSelectedSongPanel();
 }
 
+function startSongEdit(trackId) {
+  const track = tracks.find((item) => item.id === trackId);
+  if (!track) return;
+  const display = trackDisplayParts(track);
+  state.editingSongId = trackId;
+  state.songEditDraft = {
+    title: display.title,
+    artist: display.subtitle
+  };
+  renderSongEditor();
+}
+
+function updateSongEditDraft(trackId, field, value) {
+  if (state.editingSongId !== trackId || !state.songEditDraft) return;
+  state.songEditDraft = { ...state.songEditDraft, [field]: value };
+}
+
+function saveSongEdit(trackId) {
+  if (state.editingSongId !== trackId || !state.songEditDraft) return;
+  updateSongEdit(trackId, {
+    title: state.songEditDraft.title,
+    artist: state.songEditDraft.artist
+  });
+  state.editingSongId = "";
+  state.songEditDraft = null;
+  renderSongEditor();
+}
+
+function cancelSongEdit(trackId) {
+  if (state.editingSongId !== trackId) return;
+  state.editingSongId = "";
+  state.songEditDraft = null;
+  renderSongEditor();
+}
+
 function reorderSong(trackId, targetId) {
   if (!trackId || !targetId || trackId === targetId) return;
   const order = orderedTracks().map((track) => track.id);
@@ -755,15 +791,34 @@ function renderSongEditor() {
   els.songEditorList.replaceChildren();
   orderedTracks().forEach((track) => {
     const display = trackDisplayParts(track);
+    const isEditing = state.editingSongId === track.id;
+    const draft = isEditing && state.songEditDraft ? state.songEditDraft : display;
     const item = document.createElement("article");
-    item.className = "song-editor-item";
+    item.className = `song-editor-item${isEditing ? " is-editing" : ""}`;
     item.dataset.trackId = track.id;
     item.innerHTML = `
       <button class="drag-handle" data-drag-song="${track.id}" type="button" draggable="true" aria-label="${display.title} verschieben">
         <i class="fa-solid fa-grip-lines" aria-hidden="true"></i>
       </button>
-      <div class="editor-art"></div>
-      <div class="editor-fields">
+      <div class="editor-summary">
+        <strong class="editor-title"></strong>
+        <span class="editor-artist"></span>
+      </div>
+      ${isEditing ? `
+        <div class="editor-confirm-actions">
+          <button class="editor-icon-btn is-save" data-save-song="${track.id}" type="button" aria-label="Änderungen speichern">
+            <i class="fa-solid fa-check" aria-hidden="true"></i>
+          </button>
+          <button class="editor-icon-btn is-cancel" data-cancel-song="${track.id}" type="button" aria-label="Änderungen verwerfen">
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          </button>
+        </div>
+      ` : `
+        <button class="editor-icon-btn" data-edit-song="${track.id}" type="button" aria-label="${display.title} bearbeiten">
+          <i class="fa-solid fa-pen" aria-hidden="true"></i>
+        </button>
+      `}
+      <div class="editor-fields" ${isEditing ? "" : "hidden"}>
         <label>
           <span>Titel</span>
           <input data-edit-field="title" data-track-id="${track.id}" type="text">
@@ -774,18 +829,12 @@ function renderSongEditor() {
         </label>
       </div>
     `;
-    const art = item.querySelector(".editor-art");
-    if (display.image) {
-      const image = document.createElement("img");
-      image.src = display.image;
-      image.alt = "";
-      image.loading = "lazy";
-      art.appendChild(image);
-    } else {
-      art.innerHTML = `<i class="fa-solid fa-music" aria-hidden="true"></i>`;
+    item.querySelector(".editor-title").textContent = display.title;
+    item.querySelector(".editor-artist").textContent = display.subtitle;
+    if (isEditing) {
+      item.querySelector('[data-edit-field="title"]').value = draft.title;
+      item.querySelector('[data-edit-field="artist"]').value = draft.artist;
     }
-    item.querySelector('[data-edit-field="title"]').value = display.title;
-    item.querySelector('[data-edit-field="artist"]').value = display.subtitle;
     els.songEditorList.appendChild(item);
   });
 }
@@ -1966,11 +2015,23 @@ function init() {
   els.songEditorList.addEventListener("input", (event) => {
     const input = event.target.closest("[data-edit-field]");
     if (!input) return;
-    const current = songEdits[input.dataset.trackId] || {};
-    songEdits = { ...songEdits, [input.dataset.trackId]: { ...current, [input.dataset.editField]: input.value } };
-    persistSongSettings();
-    renderSongCards();
-    updateSelectedSongPanel();
+    updateSongEditDraft(input.dataset.trackId, input.dataset.editField, input.value);
+  });
+  els.songEditorList.addEventListener("click", (event) => {
+    const editButton = event.target.closest("[data-edit-song]");
+    if (editButton) {
+      startSongEdit(editButton.dataset.editSong);
+      return;
+    }
+    const saveButton = event.target.closest("[data-save-song]");
+    if (saveButton) {
+      saveSongEdit(saveButton.dataset.saveSong);
+      return;
+    }
+    const cancelButton = event.target.closest("[data-cancel-song]");
+    if (cancelButton) {
+      cancelSongEdit(cancelButton.dataset.cancelSong);
+    }
   });
   els.songEditorList.addEventListener("dragstart", (event) => {
     const handle = event.target.closest("[data-drag-song]");
@@ -2010,6 +2071,8 @@ function init() {
   els.resetSongEdits.addEventListener("click", () => {
     songEdits = {};
     songOrder = tracks.map((track) => track.id);
+    state.editingSongId = "";
+    state.songEditDraft = null;
     persistSongSettings();
     renderSongCards();
     renderSongEditor();
