@@ -1564,6 +1564,7 @@ function drawNotePad(x, y, lane, laneId, missed, size, ghost = false, variant = 
   const scale = size / 46;
   const half = 23 * scale;
   const radius = 14 * scale;
+  const outlineGap = 5 * scale;
   const outline = Math.max(light ? 2.6 : 2.4, (light ? 3.8 : 3.4) * scale);
   const innerStroke = Math.max(light ? 0.9 : 0.8, (light ? 1.35 : 1.15) * scale);
   ctx.save();
@@ -1577,10 +1578,10 @@ function drawNotePad(x, y, lane, laneId, missed, size, ghost = false, variant = 
 
   if (laneId === "crash") {
     ctx.beginPath();
-    ctx.moveTo(x, y - 31 * scale);
-    ctx.lineTo(x + 39 * scale, y);
-    ctx.lineTo(x, y + 31 * scale);
-    ctx.lineTo(x - 39 * scale, y);
+    ctx.moveTo(x, y - half - outlineGap);
+    ctx.lineTo(x + 31 * scale + outlineGap, y);
+    ctx.lineTo(x, y + half + outlineGap);
+    ctx.lineTo(x - 31 * scale - outlineGap, y);
     ctx.closePath();
     ctx.fill();
     ctx.strokeStyle = colors.outline;
@@ -1610,8 +1611,8 @@ function drawNotePad(x, y, lane, laneId, missed, size, ghost = false, variant = 
     ctx.lineWidth = Math.max(1.2, 2 * scale);
     ctx.stroke();
   } else if (laneId === "hihat") {
-    const outer = 27 * scale;
-    const inner = 21 * scale;
+    const inner = 22 * scale;
+    const outer = inner + outlineGap;
     ctx.beginPath();
     ctx.arc(x, y, outer, 0, Math.PI * 2);
     ctx.fill();
@@ -1635,10 +1636,10 @@ function drawNotePad(x, y, lane, laneId, missed, size, ghost = false, variant = 
     ctx.arc(x - 8 * scale, y - 9 * scale, 6 * scale, 0, Math.PI * 2);
     ctx.fill();
   } else if (laneId === "ride") {
-    const w = 58 * scale;
-    const h = 38 * scale;
+    const w = 56 * scale;
+    const h = 36 * scale;
     ctx.beginPath();
-    ctx.roundRect(x - (w + 8 * scale) / 2, y - (h + 8 * scale) / 2, w + 8 * scale, h + 8 * scale, 999 * scale);
+    ctx.roundRect(x - (w + outlineGap * 2) / 2, y - (h + outlineGap * 2) / 2, w + outlineGap * 2, h + outlineGap * 2, 999 * scale);
     ctx.fill();
     ctx.strokeStyle = colors.outline;
     ctx.lineWidth = outline;
@@ -1663,7 +1664,7 @@ function drawNotePad(x, y, lane, laneId, missed, size, ghost = false, variant = 
     const w = 54 * scale;
     const h = 34 * scale;
     ctx.beginPath();
-    ctx.roundRect(x - (w + 8 * scale) / 2, y - (h + 8 * scale) / 2, w + 8 * scale, h + 8 * scale, 12 * scale);
+    ctx.roundRect(x - (w + outlineGap * 2) / 2, y - (h + outlineGap * 2) / 2, w + outlineGap * 2, h + outlineGap * 2, 12 * scale);
     ctx.fill();
     ctx.strokeStyle = colors.outline;
     ctx.lineWidth = outline;
@@ -1686,7 +1687,7 @@ function drawNotePad(x, y, lane, laneId, missed, size, ghost = false, variant = 
     ctx.fill();
   } else {
     ctx.beginPath();
-    ctx.roundRect(x - half - 5 * scale, y - half - 5 * scale, half * 2 + 10 * scale, half * 2 + 10 * scale, radius + 5 * scale);
+    ctx.roundRect(x - half - outlineGap, y - half - outlineGap, half * 2 + outlineGap * 2, half * 2 + outlineGap * 2, radius + outlineGap);
     ctx.fill();
     ctx.strokeStyle = colors.outline;
     ctx.lineWidth = outline;
