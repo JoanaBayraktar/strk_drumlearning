@@ -435,6 +435,15 @@ function seekFromPointer(event) {
   seekTo(canvasTimeFromPointer(event));
 }
 
+function laneFromChartPointer(event) {
+  const rect = els.canvas.getBoundingClientRect();
+  const { laneAreaHeight, laneHeight } = chartMetrics();
+  const y = event.clientY - rect.top;
+  if (y < 0 || y > laneAreaHeight) return null;
+  const laneIndex = Math.max(0, Math.min(lanes.length - 1, Math.floor(y / laneHeight)));
+  return lanes[laneIndex];
+}
+
 function seekByBars(direction) {
   if (state.playing || !state.track) return;
   seekTo(currentTime() + direction * barMs());
@@ -471,6 +480,7 @@ function beginPlayback(forceStart = false) {
 
 async function togglePlay() {
   await ensureAudio();
+  primeMobileAudio();
   if (state.playing) {
     state.pausedAt = currentTime();
     state.playing = false;
@@ -542,8 +552,10 @@ function updateHeaderScrollState() {
   els.app.classList.toggle("has-library-scroll", scrolled);
 }
 
-function startPractice(trackId) {
+async function startPractice(trackId) {
   if (state.starting) return;
+  await ensureAudio();
+  primeMobileAudio();
   state.starting = true;
   els.app.classList.add("is-starting");
   window.setTimeout(() => {
@@ -1018,6 +1030,18 @@ function unlockAudioOutput() {
   return state.audioUnlocking;
 }
 
+function primeMobileAudio() {
+  if (!state.audio || state.muted) return;
+  const now = state.audio.currentTime;
+  const osc = state.audio.createOscillator();
+  const gain = state.audio.createGain();
+  gain.gain.setValueAtTime(0.00001, now);
+  osc.frequency.setValueAtTime(220, now);
+  osc.connect(gain).connect(state.audio.destination);
+  osc.start(now);
+  osc.stop(now + 0.025);
+}
+
 function preloadSamples() {
   for (const id of Object.keys(sampleManifest)) loadSample(id);
 }
@@ -1175,7 +1199,7 @@ function playBackingNote(event) {
 
 function playDrum(laneId, accent = 1, variant = "") {
   if (state.muted || !state.audio) return;
-  const volume = 0.12 * accent;
+  const volume = 0.16 * accent;
   const sampleId =
     laneId === "hihat" ? (variant === "open" ? "hihatOpen" : "hihatClosed") :
     laneId === "pedalHat" ? "pedalHat" :
@@ -1800,6 +1824,7 @@ function tick() {
 function init() {
   document.addEventListener("pointerdown", ensureAudio, { once: true });
   document.addEventListener("touchstart", ensureAudio, { once: true, passive: true });
+  document.addEventListener("touchend", ensureAudio, { once: true, passive: true });
   document.addEventListener("keydown", ensureAudio, { once: true });
   els.library.addEventListener("click", openStartScreen);
   els.menu.addEventListener("click", () => setMenuOpen(true));
@@ -1920,7 +1945,12 @@ function init() {
     seekByBars(1);
   });
   els.canvas.addEventListener("pointerdown", (event) => {
-    if (event.button !== 0 || state.playing || !state.track) return;
+    if (event.button !== 0 || !state.track) return;
+    if (state.playing) {
+      const lane = laneFromChartPointer(event);
+      if (lane) hitLane(lane.id);
+      return;
+    }
     state.seekingWithPointer = true;
     els.canvas.setPointerCapture?.(event.pointerId);
     seekFromPointer(event);
