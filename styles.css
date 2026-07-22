@@ -1294,9 +1294,9 @@ p {
   grid-column: 2;
   grid-row: 1;
   align-self: center;
-  color: var(--muted);
-  font-size: var(--type-sm);
-  font-weight: var(--weight-label);
+  color: var(--text);
+  font-size: 1.35rem;
+  font-weight: var(--weight-strong);
   letter-spacing: 0;
   text-transform: uppercase;
 }
@@ -2170,6 +2170,10 @@ canvas {
 .step-btn.plus {
   background: var(--cue);
   color: var(--ink-on-cue);
+}
+
+.step-btn.plus:hover {
+  background: var(--cue-hover);
 }
 
 .preset-actions {
@@ -3200,7 +3204,7 @@ canvas {
     grid-column: 2;
     grid-row: 1;
     align-self: center;
-    font-size: var(--type-sm);
+    font-size: 1.25rem;
   }
 
   .play-settings-sheet .switch-copy strong {
