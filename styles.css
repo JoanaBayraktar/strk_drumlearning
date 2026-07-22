@@ -606,7 +606,7 @@ p {
   display: grid;
   grid-template-rows: auto auto auto;
   gap: var(--space-5);
-  padding: clamp(var(--space-4), 3.8vw, 56px);
+  padding: 0 clamp(var(--space-4), 3.8vw, 56px) clamp(var(--space-4), 3.8vw, 56px);
   align-items: start;
 }
 
@@ -615,12 +615,13 @@ p {
   margin: 0 auto;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(292px, 380px);
-  align-items: end;
+  align-items: start;
   gap: var(--space-4);
 }
 
 .start-intro {
   min-width: 0;
+  padding-top: clamp(var(--space-4), 3.8vw, 56px);
 }
 
 .start-kicker-row {
@@ -682,28 +683,24 @@ p {
 }
 
 .start-selection {
+  position: fixed;
+  top: 76px;
+  right: clamp(var(--space-4), 3.8vw, 56px);
+  z-index: 8;
+  width: min(380px, calc(100vw - 32px));
   min-width: 0;
-  padding: var(--space-4);
-  border-radius: 12px;
+  padding: var(--space-5);
+  border-radius: 0 0 16px 16px;
   background:
-    linear-gradient(135deg, var(--cue-soft), transparent 48%),
+    linear-gradient(135deg, var(--cue-soft), transparent 62%),
     var(--surface-raised);
-  box-shadow: 0 0 0 4px var(--shadow-hard), inset 0 0 0 1px var(--border);
-}
-
-.start-selection span {
-  display: block;
-  color: var(--cue);
-  font-size: var(--type-xs);
-  line-height: 1;
-  font-weight: var(--weight-label);
+  box-shadow: inset 0 -1px 0 var(--border);
 }
 
 .start-selection strong {
   display: block;
-  margin-top: var(--space-2);
   color: var(--text);
-  font-size: var(--type-lg);
+  font-size: var(--type-xl);
   line-height: 1.15;
   font-weight: var(--weight-strong);
 }
@@ -718,10 +715,10 @@ p {
 
 .selected-play {
   width: 100%;
-  min-height: 48px;
+  min-height: 60px;
   border: 0;
-  border-radius: 12px;
-  margin-top: var(--space-4);
+  border-radius: 14px;
+  margin-top: var(--space-5);
   padding: 0 var(--space-4);
   display: inline-flex;
   align-items: center;
@@ -730,7 +727,7 @@ p {
   background: var(--cue);
   color: var(--ink-on-cue);
   cursor: pointer;
-  font-size: var(--type-md);
+  font-size: var(--type-lg);
   font-weight: var(--weight-strong);
   box-shadow: 0 5px 0 var(--shadow-hard);
   transition: background 150ms ease, transform 150ms ease, box-shadow 150ms ease;
@@ -2192,7 +2189,7 @@ canvas {
   }
 
   .start-screen {
-    padding: var(--space-5) var(--space-3);
+    padding: 0 var(--space-3) var(--space-5);
     gap: var(--space-4);
   }
 
@@ -2200,7 +2197,15 @@ canvas {
     grid-template-columns: 1fr;
   }
 
+  .start-intro {
+    padding-top: var(--space-5);
+  }
+
   .start-selection {
+    position: sticky;
+    top: 0;
+    right: auto;
+    width: 100%;
     padding: var(--space-3);
   }
 

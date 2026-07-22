@@ -673,11 +673,9 @@ function visibleLibraryTracks() {
 function updateSelectedSongPanel() {
   const track = selectedLibraryTrack();
   const meta = trackMeta(track);
-  const intensity = trackIntensity(track);
-  const source = trackSource(track);
   const display = trackDisplayParts(track);
   els.selectedSongTitle.textContent = display.title;
-  els.selectedSongMeta.textContent = `${meta.bpm} / ${meta.duration} / ${meta.notes} / ${intensity} / ${source}`;
+  els.selectedSongMeta.textContent = `🎵 ${meta.bpm} · ⏱ ${meta.duration} · 🥁 ${meta.notes}`;
 }
 
 function selectLibraryTrack(trackId) {
