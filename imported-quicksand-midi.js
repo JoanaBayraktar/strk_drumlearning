@@ -4,7 +4,8 @@ window.importedTracks = [
   "name": "What I Know Is All Quicksand - MIDI import",
   "bpm": 135.0,
   "bars": 176.0,
-  "source": "Local MIDI import: what-i-know-is-all-quicksand.mid. Drums from channel 10 custom Songsterr map; lead guitar, rhythm guitar, bass and melody rendered as quiet sample backing.",
+  "source": "Local MIDI import: what-i-know-is-all-quicksand.mid. Drums from channel 10 custom Songsterr map; MP3 backing from the rendered arrangement.",
+  "backingAudioUrl": "./assets/what-i-know-is-all-quicksand.mp3",
   "durationMs": 312888.58,
   "events": [
     {

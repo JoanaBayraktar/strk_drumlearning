@@ -94,6 +94,9 @@ const state = {
   flash: new Map(),
   hitEffects: [],
   audio: null,
+  backingAudio: null,
+  backingAudioUrl: "",
+  backingAudioPrimed: false,
   noiseBuffer: null,
   samples: new Map(),
   samplePromises: new Map(),
@@ -342,11 +345,107 @@ function resetEventsInRange(start, end) {
   }
 }
 
+function hasAudioBacking() {
+  return Boolean(state.track?.backingAudioUrl);
+}
+
+function prepareBackingAudio() {
+  const url = state.track?.backingAudioUrl || "";
+  if (!url) {
+    if (state.backingAudio) {
+      state.backingAudio.pause();
+      state.backingAudio.removeAttribute("src");
+      state.backingAudio.load();
+    }
+    state.backingAudio = null;
+    state.backingAudioUrl = "";
+    state.backingAudioPrimed = false;
+    return null;
+  }
+
+  if (!state.backingAudio || state.backingAudioUrl !== url) {
+    if (state.backingAudio) state.backingAudio.pause();
+    state.backingAudio = new Audio(url);
+    state.backingAudio.preload = "auto";
+    state.backingAudio.playsInline = true;
+    state.backingAudioUrl = url;
+    state.backingAudioPrimed = false;
+  }
+
+  state.backingAudio.playbackRate = state.speed;
+  state.backingAudio.volume = state.muted ? 0 : state.backingVolume;
+  return state.backingAudio;
+}
+
+function backingAudioTimeSeconds() {
+  return Math.max(0, currentTime() / 1000);
+}
+
+function setBackingAudioPosition(time = currentTime()) {
+  const audio = prepareBackingAudio();
+  if (!audio) return;
+  const maxTime = Number.isFinite(audio.duration) ? Math.max(0, audio.duration - 0.02) : Infinity;
+  const next = Math.min(Math.max(0, time / 1000), maxTime);
+  if (Math.abs(audio.currentTime - next) > 0.08) audio.currentTime = next;
+}
+
+function stopBackingAudio(syncPosition = true) {
+  const audio = state.backingAudio;
+  if (!audio) return;
+  audio.pause();
+  if (syncPosition) setBackingAudioPosition();
+}
+
+function syncBackingAudio(allowPlay = false) {
+  const audio = prepareBackingAudio();
+  if (!audio) return;
+  audio.playbackRate = state.speed;
+  audio.volume = state.muted ? 0 : state.backingVolume;
+
+  const songTime = currentTime();
+  if (!state.playing || state.completed || songTime < 0) {
+    stopBackingAudio(true);
+    return;
+  }
+
+  const target = backingAudioTimeSeconds();
+  if (Math.abs(audio.currentTime - target) > 0.16) audio.currentTime = target;
+  if (audio.paused && allowPlay) {
+    audio.play()
+      .then(() => {
+        state.backingAudioPrimed = true;
+      })
+      .catch((error) => {
+        console.warn("MP3 backing playback deferred", error);
+      });
+  }
+}
+
+function primeBackingAudioFromGesture() {
+  const audio = prepareBackingAudio();
+  if (!audio || state.backingAudioPrimed) return;
+  const previousVolume = audio.volume;
+  audio.volume = 0;
+  setBackingAudioPosition();
+  audio.play()
+    .then(() => {
+      state.backingAudioPrimed = true;
+      audio.volume = state.muted ? 0 : state.backingVolume;
+      setBackingAudioPosition();
+      if (!state.playing || currentTime() < 0) audio.pause();
+    })
+    .catch((error) => {
+      audio.volume = previousVolume;
+      console.warn("MP3 backing unlock deferred", error);
+    });
+}
+
 function setTrack(trackId) {
   state.track = tracks.find((track) => track.id === trackId) || tracks[0];
   state.selectedTrackId = state.track.id;
   state.loopStartBar = 1;
   state.loopEndBar = Math.min(4, totalBars());
+  prepareBackingAudio();
   reset();
   updatePracticeControls();
   updatePlayerMeta();
@@ -355,7 +454,7 @@ function setTrack(trackId) {
 
 function reset() {
   state.events = buildEvents(state.track);
-  state.backingEvents = Array.isArray(state.track?.backingEvents)
+  state.backingEvents = !hasAudioBacking() && Array.isArray(state.track?.backingEvents)
     ? state.track.backingEvents
       .filter((event) => Number.isFinite(event.time) && Number.isFinite(event.note))
       .map((event) => ({
@@ -383,6 +482,8 @@ function reset() {
   els.app.classList.remove("is-finishing");
   state.flash.clear();
   state.hitEffects = [];
+  stopBackingAudio(false);
+  setBackingAudioPosition(0);
   updateStats();
   if (state.track) draw();
 }
@@ -444,6 +545,7 @@ function seekTo(time) {
   hideCompletion();
   els.app.classList.remove("is-finishing");
   markEventsForSeek(next);
+  syncBackingAudio(false);
   updateStats();
   draw();
 }
@@ -501,6 +603,7 @@ function beginPlayback(forceStart = false) {
   state.startedAt = performance.now();
   state.playing = true;
   els.play.classList.add("is-playing");
+  syncBackingAudio(true);
 }
 
 function togglePlay() {
@@ -508,7 +611,9 @@ function togglePlay() {
     state.pausedAt = currentTime();
     state.playing = false;
     els.play.classList.remove("is-playing");
+    stopBackingAudio(true);
   } else {
+    primeBackingAudioFromGesture();
     ensureAudio()
       .then(() => primeMobileAudio())
       .catch((error) => {
@@ -535,6 +640,7 @@ function openStartScreen() {
   hideCompletion();
   els.play.classList.remove("is-playing");
   els.app.classList.remove("is-playing", "is-starting");
+  stopBackingAudio(true);
 }
 
 function applyTheme(theme) {
@@ -852,6 +958,7 @@ function setSpeed(speed) {
     state.pausedAt = songTime;
     state.startedAt = performance.now();
   }
+  syncBackingAudio(state.playing);
   els.speedLabel.textContent = `${Math.round(speed * 100)}%`;
   updatePlayerMeta();
 }
@@ -867,6 +974,7 @@ function setBackingVolume(value) {
   els.backingVolume.value = String(next);
   state.backingVolume = next / 100;
   els.backingVolumeLabel.textContent = next === 0 ? "Off" : `${next}%`;
+  syncBackingAudio(state.playing);
 }
 
 function setAccuracyMode(mode) {
@@ -1436,6 +1544,7 @@ function updateLoop() {
   state.countBeat = -1;
   state.combo = 0;
   state.judgement = "Loop";
+  syncBackingAudio(true);
 }
 
 function updateStats() {
@@ -1508,6 +1617,7 @@ function finishSong(duration) {
   state.judgement = "Finished";
   els.play.classList.remove("is-playing");
   els.app.classList.add("is-finishing");
+  stopBackingAudio(true);
   updateStats();
   clearTimeout(state.finishTimer);
   state.finishTimer = window.setTimeout(showCompletion, 760);
@@ -1931,6 +2041,7 @@ function drawTimeGrid(width, laneAreaHeight, hitX, pxPerMs, now) {
 function tick() {
   if (state.playing) {
     updateCountIn();
+    syncBackingAudio(true);
     updatePlaybackSounds();
     updateMisses();
     updateLoop();
@@ -2049,6 +2160,7 @@ function init() {
   els.midi.addEventListener("click", connectMidi);
   els.mute.addEventListener("click", () => {
     state.muted = !state.muted;
+    syncBackingAudio(state.playing);
     updateStats();
   });
   els.zoom.addEventListener("input", () => {
