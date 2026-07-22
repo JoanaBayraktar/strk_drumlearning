@@ -118,6 +118,8 @@ const state = {
   finishTimer: 0,
   seekHintUntil: 0,
   seekingWithPointer: false,
+  songMapActiveBar: 0,
+  songMapSections: [],
   lastWheelSeek: 0,
   midiAccess: null,
   midiConnected: false,
@@ -193,6 +195,9 @@ const els = {
   resetSongEdits: document.getElementById("resetSongEditsBtn"),
   stepButtons: [...document.querySelectorAll(".step-btn")],
   progress: document.getElementById("progressBar"),
+  songMap: document.getElementById("songMap"),
+  songMapCurrentBar: document.getElementById("songMapCurrentBar"),
+  songMapTotalBars: document.getElementById("songMapTotalBars"),
   score: document.getElementById("score"),
   combo: document.getElementById("combo"),
   accuracy: document.getElementById("accuracy"),
@@ -447,6 +452,7 @@ function setTrack(trackId) {
   state.selectedTrackId = state.track.id;
   state.loopStartBar = 1;
   state.loopEndBar = Math.min(4, totalBars());
+  state.songMapActiveBar = 0;
   prepareBackingAudio();
   reset();
   updatePracticeControls();
@@ -487,6 +493,7 @@ function reset() {
   stopBackingAudio(false);
   setBackingAudioPosition(0);
   updateStats();
+  renderSongMap();
   if (state.track) draw();
 }
 
@@ -547,8 +554,9 @@ function seekTo(time) {
   hideCompletion();
   els.app.classList.remove("is-finishing");
   markEventsForSeek(next);
-  syncBackingAudio(false);
+  syncBackingAudio(state.playing);
   updateStats();
+  updateSongMap();
   draw();
 }
 
@@ -1006,6 +1014,170 @@ function updatePracticeControls() {
   els.loopEndLabel.textContent = state.loopEndBar.toString();
   els.loopLengthLabel.textContent = `${length}T`;
   els.app.classList.toggle("has-loop", state.loopEnabled);
+  updateSongMap();
+}
+
+function songMapSummaries() {
+  const bars = totalBars();
+  const summaries = Array.from({ length: bars }, (_, index) => ({
+    bar: index + 1,
+    hits: 0,
+    cymbals: 0,
+    toms: 0,
+    kicks: 0,
+    snare: 0,
+    openHat: 0,
+    downbeatCrash: false
+  }));
+  const length = barMs();
+  for (const event of state.events) {
+    const bar = Math.min(bars, Math.max(1, Math.floor(event.time / length) + 1));
+    const summary = summaries[bar - 1];
+    summary.hits += 1;
+    if (event.lane === "crash" || event.lane === "ride" || event.lane === "hihat") summary.cymbals += 1;
+    if (event.lane === "highTom" || event.lane === "midTom" || event.lane === "lowTom") summary.toms += 1;
+    if (event.lane === "kick") summary.kicks += 1;
+    if (event.lane === "snare") summary.snare += 1;
+    if (event.variant === "open") summary.openHat += 1;
+    if (event.lane === "crash" && event.time - (bar - 1) * length < beatMs() * 0.18) summary.downbeatCrash = true;
+  }
+  return summaries;
+}
+
+function songMapIntensity(summary, maxHits) {
+  if (summary.hits === 0) return "rest";
+  const ratio = maxHits > 0 ? summary.hits / maxHits : 0;
+  if (summary.toms >= 3 || ratio >= 0.72) return "fill";
+  if (summary.cymbals > 0 && summary.kicks > 0 && ratio >= 0.42) return "groove";
+  return "light";
+}
+
+function songMapRole(summary, maxHits) {
+  if (summary.hits === 0) return "break";
+  const ratio = maxHits > 0 ? summary.hits / maxHits : 0;
+  if (summary.toms >= 3 || ratio >= 0.72) return "fill";
+  if (summary.openHat >= 2 || summary.downbeatCrash) return "part";
+  return "groove";
+}
+
+function songMapSignature(summary, maxHits) {
+  const density = Math.min(4, Math.floor((summary.hits / Math.max(1, maxHits)) * 5));
+  const cymbalWeight = Math.min(3, Math.floor((summary.cymbals / Math.max(1, summary.hits)) * 4));
+  const tomWeight = Math.min(3, Math.floor((summary.toms / Math.max(1, summary.hits)) * 5));
+  const kickSnare = `${Math.min(3, summary.kicks)}:${Math.min(3, summary.snare)}`;
+  return `${density}-${cymbalWeight}-${tomWeight}-${kickSnare}-${summary.openHat > 0 ? 1 : 0}`;
+}
+
+function detectSongSections(summaries, maxHits) {
+  if (summaries.length === 0) return [];
+  const sections = [{ bar: 1, label: "Intro", role: songMapRole(summaries[0], maxHits) }];
+  let lastStart = 1;
+  let partIndex = 0;
+
+  for (let index = 1; index < summaries.length; index += 1) {
+    const current = summaries[index];
+    const previous = summaries[index - 1];
+    const currentRole = songMapRole(current, maxHits);
+    const previousRole = songMapRole(previous, maxHits);
+    const currentSignature = songMapSignature(current, maxHits);
+    const previousSignature = songMapSignature(previous, maxHits);
+    const hitDelta = Math.abs(current.hits - previous.hits) / Math.max(1, maxHits);
+    const cymbalDelta = Math.abs(current.cymbals - previous.cymbals) / Math.max(1, maxHits);
+    const enoughDistance = current.bar - lastStart >= 4;
+
+    let score = 0;
+    if (currentRole !== previousRole) score += 1.15;
+    if (currentSignature !== previousSignature) score += 0.75;
+    if (hitDelta >= 0.32) score += 0.8;
+    if (cymbalDelta >= 0.22) score += 0.55;
+    if (current.downbeatCrash && current.hits > 0) score += 0.85;
+    if (previousRole === "fill" && currentRole !== "fill") score += 0.75;
+    if (previous.hits === 0 && current.hits > 0) score += 1.2;
+    if (current.hits === 0 && previous.hits > 0) score += 1;
+
+    const phraseBoundary = current.bar > 1 && (current.bar - 1) % 8 === 0;
+    if (phraseBoundary && score >= 1.2) score += 0.45;
+
+    if (enoughDistance && score >= 2.1) {
+      let label;
+      if (currentRole === "break") {
+        label = "Break";
+      } else if (currentRole === "fill") {
+        label = "Fill";
+      } else {
+        label = String.fromCharCode(65 + Math.min(25, partIndex));
+        partIndex += 1;
+      }
+      sections.push({ bar: current.bar, label, role: currentRole });
+      lastStart = current.bar;
+    }
+  }
+
+  if (sections.length === 1 && summaries.length >= 24) {
+    for (let bar = 17; bar <= summaries.length; bar += 16) {
+      partIndex += 1;
+      sections.push({ bar, label: String.fromCharCode(65 + Math.min(25, partIndex)), role: "part" });
+    }
+  }
+
+  return sections;
+}
+
+function shortSectionLabel(label) {
+  if (label === "Intro") return "I";
+  if (label === "Break") return "Br";
+  if (label === "Fill") return "F";
+  return label;
+}
+
+function renderSongMap() {
+  if (!els.songMap || !state.track) return;
+  const summaries = songMapSummaries();
+  const maxHits = Math.max(1, ...summaries.map((summary) => summary.hits));
+  state.songMapSections = detectSongSections(summaries, maxHits);
+  const sectionByBar = new Map(state.songMapSections.map((section) => [section.bar, section]));
+  const html = summaries.map((summary) => {
+    const intensity = songMapIntensity(summary, maxHits);
+    const showLabel = summary.bar === 1 || summary.bar % 8 === 0;
+    const section = sectionByBar.get(summary.bar);
+    const height = Math.max(0.28, Math.min(1, summary.hits / maxHits));
+    const sectionTitle = section ? ` · neuer Part: ${section.label}` : "";
+    const title = `Takt ${summary.bar} · ${summary.hits} Hits${sectionTitle}`;
+    return `
+      <button class="song-map-bar is-${intensity}${section ? ` is-section-start is-section-${section.role}` : ""}" type="button" role="listitem" data-song-map-bar="${summary.bar}" style="--bar-fill: ${height}" aria-label="${title}" title="${title}">
+        <span class="bar-index">${showLabel ? summary.bar : ""}</span>
+        ${section ? `<span class="section-label">${shortSectionLabel(section.label)}</span>` : ""}
+      </button>
+    `;
+  }).join("");
+  els.songMap.innerHTML = html;
+  if (els.songMapTotalBars) els.songMapTotalBars.textContent = String(summaries.length || 1);
+  state.songMapActiveBar = 0;
+  updateSongMap(true);
+}
+
+function updateSongMap(force = false) {
+  if (!els.songMap || !state.track) return;
+  const currentBar = currentBarNumber();
+  if (els.songMapCurrentBar) els.songMapCurrentBar.textContent = String(currentBar);
+
+  const loopStart = state.loopEnabled ? state.loopStartBar : 0;
+  const loopEnd = state.loopEnabled ? state.loopEndBar : 0;
+  const needsClassUpdate = force || state.songMapActiveBar !== currentBar;
+  if (!needsClassUpdate && els.songMap.dataset.loopStart === String(loopStart) && els.songMap.dataset.loopEnd === String(loopEnd)) return;
+
+  state.songMapActiveBar = currentBar;
+  els.songMap.dataset.loopStart = String(loopStart);
+  els.songMap.dataset.loopEnd = String(loopEnd);
+  for (const item of els.songMap.querySelectorAll("[data-song-map-bar]")) {
+    const bar = Number(item.dataset.songMapBar);
+    item.classList.toggle("is-current", bar === currentBar);
+    item.classList.toggle("is-looped", state.loopEnabled && bar >= state.loopStartBar && bar <= state.loopEndBar);
+  }
+  const current = els.songMap.querySelector(".song-map-bar.is-current");
+  if (current) {
+    current.scrollIntoView({ block: "nearest", inline: "center", behavior: state.playing ? "auto" : "smooth" });
+  }
 }
 
 function updatePlayerMeta() {
@@ -1088,6 +1260,7 @@ function setLoopBar(which, delta) {
     state.startedAt = performance.now();
   }
   updatePracticeControls();
+  updateSongMap(true);
   draw();
 }
 
@@ -1098,6 +1271,7 @@ function setLoopLength(delta) {
     state.startedAt = performance.now();
   }
   updatePracticeControls();
+  updateSongMap(true);
   draw();
 }
 
@@ -2049,6 +2223,7 @@ function tick() {
     updateLoop();
     updateStats();
   }
+  updateSongMap();
   draw();
   requestAnimationFrame(tick);
 }
@@ -2215,6 +2390,11 @@ function init() {
   }
 
   els.canvas.addEventListener("wheel", seekByWheel, { passive: false });
+  els.songMap.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-song-map-bar]");
+    if (!button || !state.track) return;
+    seekTo((Number(button.dataset.songMapBar) - 1) * barMs());
+  });
   els.seekBack.addEventListener("click", (event) => {
     event.stopPropagation();
     seekByBars(-1);
