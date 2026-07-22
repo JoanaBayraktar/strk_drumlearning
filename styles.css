@@ -1188,10 +1188,10 @@ p {
 .play-settings-sheet .control-stepper > div:first-child {
   min-width: 0;
   display: grid;
-  grid-template-columns: 32px minmax(0, 1fr);
+  grid-template-columns: 40px minmax(0, 1fr);
   grid-template-rows: auto auto;
   align-items: center;
-  column-gap: var(--space-3);
+  column-gap: var(--space-4);
   row-gap: 6px;
 }
 
@@ -1199,7 +1199,7 @@ p {
   display: contents;
   min-width: 0;
   color: var(--muted);
-  font-size: var(--type-xs);
+  font-size: var(--type-sm);
   font-weight: var(--weight-label);
   letter-spacing: 0;
   text-transform: uppercase;
@@ -1219,8 +1219,8 @@ p {
   grid-row: 1 / 3;
   align-self: center;
   justify-self: start;
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
   color: var(--cue);
 }
 
@@ -1231,7 +1231,7 @@ p {
   min-width: 0;
   overflow: visible;
   color: var(--text);
-  font-size: var(--type-lg);
+  font-size: 1.35rem;
   line-height: 1;
   text-overflow: clip;
   white-space: nowrap;
@@ -1285,9 +1285,9 @@ p {
 .play-settings-sheet .switch-copy {
   min-width: 0;
   display: grid;
-  grid-template-columns: 32px minmax(0, 1fr);
+  grid-template-columns: 40px minmax(0, 1fr);
   align-items: center;
-  column-gap: var(--space-3);
+  column-gap: var(--space-4);
 }
 
 .play-settings-sheet .switch-copy span {
@@ -1295,7 +1295,7 @@ p {
   grid-row: 1;
   align-self: center;
   color: var(--muted);
-  font-size: var(--type-xs);
+  font-size: var(--type-sm);
   font-weight: var(--weight-label);
   letter-spacing: 0;
   text-transform: uppercase;
@@ -3141,16 +3141,16 @@ canvas {
 
   .play-settings-sheet .control-stepper > div:first-child {
     display: grid;
-    grid-template-columns: 28px minmax(0, 1fr);
+    grid-template-columns: 38px minmax(0, 1fr);
     grid-template-rows: auto auto;
     align-items: center;
-    column-gap: var(--space-3);
+    column-gap: var(--space-4);
     row-gap: 7px;
   }
 
   .play-settings-sheet .control-stepper span {
     display: contents;
-    font-size: var(--type-2xs);
+    font-size: var(--type-sm);
   }
 
   .play-settings-sheet .control-stepper span em {
@@ -3166,8 +3166,8 @@ canvas {
     grid-row: 1 / 3;
     align-self: center;
     justify-self: start;
-    width: 22px;
-    height: 22px;
+    width: 30px;
+    height: 30px;
   }
 
   .play-settings-sheet .control-stepper strong {
@@ -3176,15 +3176,15 @@ canvas {
     align-self: start;
     margin-top: 0;
     overflow: visible;
-    font-size: var(--type-md);
+    font-size: 1.25rem;
     text-overflow: clip;
   }
 
   .play-settings-sheet .switch-copy {
     display: grid;
-    grid-template-columns: 28px minmax(0, 1fr);
+    grid-template-columns: 38px minmax(0, 1fr);
     align-items: center;
-    column-gap: var(--space-3);
+    column-gap: var(--space-4);
   }
 
   .play-settings-sheet .switch-copy i {
@@ -3192,15 +3192,15 @@ canvas {
     grid-row: 1;
     align-self: center;
     justify-self: start;
-    width: 22px;
-    height: 22px;
+    width: 30px;
+    height: 30px;
   }
 
   .play-settings-sheet .switch-copy span {
     grid-column: 2;
     grid-row: 1;
     align-self: center;
-    font-size: var(--type-2xs);
+    font-size: var(--type-sm);
   }
 
   .play-settings-sheet .switch-copy strong {
