@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400..800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./styles.css?v=20260722-song-editor-1">
+    <link rel="stylesheet" href="./styles.css?v=20260722-import-field-2">
   </head>
   <body>
     <div id="drum-app" class="drum-app">
@@ -301,19 +301,14 @@
       <div id="menuBackdrop" class="menu-backdrop" hidden></div>
       <aside id="appMenu" class="app-menu" aria-hidden="true" aria-label="STRK Menü">
         <div class="app-menu-head">
-          <div>
-            <span>STRK</span>
-            <strong>Menü</strong>
-          </div>
+          <strong>Menü</strong>
           <div class="app-menu-tools">
             <button id="themeToggle" class="theme-toggle" type="button" aria-label="Light mode einschalten" aria-pressed="false">
-              <span class="theme-label theme-label-light">Light</span>
               <span class="theme-switch" aria-hidden="true">
+                <i class="fa-solid fa-sun theme-mode-icon theme-mode-sun"></i>
                 <span class="theme-knob"></span>
-                <span class="theme-dot theme-dot-a"></span>
-                <span class="theme-dot theme-dot-b"></span>
+                <i class="fa-solid fa-moon theme-mode-icon theme-mode-moon"></i>
               </span>
-              <span class="theme-label theme-label-dark">Dark</span>
             </button>
             <button id="menuCloseBtn" class="icon-btn" type="button" aria-label="Menü schließen">
               <i class="fa-solid fa-xmark" aria-hidden="true"></i>
@@ -338,7 +333,7 @@
             <span>MIDI oder MusicXML</span>
             <input type="file" accept=".mid,.midi,.musicxml,.xml">
           </label>
-          <p>Import ist vorbereitet. Der aktuelle Prototyp nutzt noch die fest eingebauten Demo-Charts.</p>
+          <p>Diese Funktion wird erst noch freigeschaltet. Der aktuelle Prototyp nutzt noch die fest eingebauten Demo-Charts.</p>
         </section>
 
         <section id="settingsSection" class="menu-section">
@@ -369,6 +364,6 @@
     <script src="./imported-morning-blue-midi.js"></script>
     <script src="./imported-dussmann-midi.js"></script>
     <script src="./imported-bella-napoli-midi.js"></script>
-    <script src="./app.js?v=20260722-song-editor-1"></script>
+    <script src="./app.js?v=20260722-import-field-2"></script>
   </body>
 </html>
