@@ -196,8 +196,8 @@ const ctx = els.canvas.getContext("2d");
 function chartColors() {
   const light = document.documentElement.dataset.theme === "light";
   return {
-    outline: light ? "#091411" : "#050708",
-    shadow: light ? "rgba(9,20,17,0.32)" : "rgba(0,0,0,0.64)",
+    outline: light ? "rgba(6,32,26,0.74)" : "rgba(4,8,7,0.76)",
+    shadow: light ? "rgba(9,20,17,0.22)" : "rgba(0,0,0,0.42)",
     shine: light ? "rgba(255,255,255,0.68)" : "rgba(255,255,255,0.36)",
     shineSoft: light ? "rgba(255,255,255,0.38)" : "rgba(255,255,255,0.18)",
     chartA: light ? "rgba(255,255,255,0.90)" : "rgba(255,255,255,0.06)",
@@ -1482,7 +1482,7 @@ function resizeCanvas() {
 function chartMetrics() {
   const width = els.canvas.clientWidth;
   const height = els.canvas.clientHeight;
-  const laneAreaHeight = height - (window.matchMedia("(max-width: 860px)").matches ? 132 : 60);
+  const laneAreaHeight = height;
   const isMobile = window.matchMedia("(max-width: 760px)").matches;
   return {
     width,
@@ -1526,8 +1526,8 @@ function drawNotePad(x, y, lane, laneId, missed, size, ghost = false, variant = 
   const scale = size / 46;
   const half = 23 * scale;
   const radius = 14 * scale;
-  const outline = Math.max(light ? 4.6 : 4, (light ? 5.8 : 5) * scale);
-  const innerStroke = Math.max(light ? 1.8 : 1.4, (light ? 2.4 : 2) * scale);
+  const outline = Math.max(light ? 2.6 : 2.4, (light ? 3.8 : 3.4) * scale);
+  const innerStroke = Math.max(light ? 0.9 : 0.8, (light ? 1.35 : 1.15) * scale);
   ctx.save();
   ctx.globalAlpha = alpha;
   if (ghost) ctx.filter = "saturate(0.62)";
@@ -1575,7 +1575,7 @@ function drawNotePad(x, y, lane, laneId, missed, size, ghost = false, variant = 
     const w = 54 * scale;
     const h = 34 * scale;
     ctx.beginPath();
-    ctx.roundRect(x - (w + 13 * scale) / 2, y - (h + 12 * scale) / 2, w + 13 * scale, h + 12 * scale, 14 * scale);
+    ctx.roundRect(x - (w + 8 * scale) / 2, y - (h + 8 * scale) / 2, w + 8 * scale, h + 8 * scale, 12 * scale);
     ctx.fill();
     ctx.strokeStyle = colors.outline;
     ctx.lineWidth = outline;
@@ -1598,7 +1598,7 @@ function drawNotePad(x, y, lane, laneId, missed, size, ghost = false, variant = 
     ctx.fill();
   } else {
     ctx.beginPath();
-    ctx.roundRect(x - half - 7 * scale, y - half - 7 * scale, half * 2 + 14 * scale, half * 2 + 14 * scale, radius + 7 * scale);
+    ctx.roundRect(x - half - 5 * scale, y - half - 5 * scale, half * 2 + 10 * scale, half * 2 + 10 * scale, radius + 5 * scale);
     ctx.fill();
     ctx.strokeStyle = colors.outline;
     ctx.lineWidth = outline;

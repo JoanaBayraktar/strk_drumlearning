@@ -1628,6 +1628,10 @@ p {
   font-weight: var(--weight-label);
 }
 
+.lane-short {
+  display: none;
+}
+
 .chart-shell {
   position: relative;
   min-width: 0;
@@ -2820,12 +2824,12 @@ canvas {
   }
 
   .controls {
-    padding: var(--space-1);
+    padding: var(--space-2);
     display: grid;
     grid-auto-flow: row;
     grid-auto-columns: initial;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-1);
+    gap: var(--space-2);
     overflow-x: hidden;
     overflow-y: hidden;
     scroll-snap-type: none;
@@ -2835,11 +2839,9 @@ canvas {
   }
 
   .settings-panel {
-    max-height: 154px;
+    max-height: 156px;
     border-radius: 14px;
-    background:
-      linear-gradient(90deg, var(--surface-2), var(--surface) 72%),
-      var(--surface);
+    background: color-mix(in oklch, var(--surface-2), var(--surface) 36%);
   }
 
   .performance-panel {
@@ -2851,13 +2853,14 @@ canvas {
     min-height: 70px;
     padding: var(--space-2);
     border: 0;
-    border-radius: 12px;
+    border-radius: 14px;
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 1fr auto;
     align-content: space-between;
-    align-items: center;
-    gap: var(--space-1);
-    background: var(--control);
+    align-items: stretch;
+    gap: var(--space-2);
+    background: color-mix(in oklch, var(--control), var(--surface-2) 18%);
     scroll-snap-align: none;
   }
 
@@ -2879,30 +2882,31 @@ canvas {
   }
 
   .control-stepper > div:first-child {
-    grid-template-columns: 1fr;
+    grid-template-columns: 24px minmax(0, 1fr);
     column-gap: var(--space-1);
+    align-items: center;
     justify-items: start;
     min-width: 0;
   }
 
   .control-stepper span {
-    grid-template-columns: 1fr;
+    grid-template-columns: 24px minmax(0, 1fr);
     gap: var(--space-1);
     font-size: 0;
     letter-spacing: 0.02em;
   }
 
   .control-stepper span i {
-    width: 18px;
-    height: 18px;
+    width: 24px;
+    height: 24px;
   }
 
   .control-stepper strong {
-    grid-column: 1;
-    margin-top: var(--space-1);
+    grid-column: 2;
+    margin-top: 0;
     max-width: 100%;
     overflow: hidden;
-    font-size: 0.78rem;
+    font-size: 1.02rem;
     line-height: 1.05;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -2910,14 +2914,16 @@ canvas {
 
   .control-stepper[data-setting="speed"] strong,
   .control-stepper[data-setting="hitWindow"] strong {
-    font-size: 0.78rem;
+    font-size: 1.02rem;
   }
 
   .stepper-actions {
-    width: 54px;
-    grid-template-columns: repeat(2, 25px);
-    gap: 4px;
-    padding: 2px;
+    width: 88px;
+    height: 40px;
+    grid-template-columns: repeat(2, 40px);
+    gap: var(--space-2);
+    padding: 0;
+    justify-self: start;
     background: color-mix(in oklch, var(--surface-3), transparent 10%);
   }
 
@@ -2931,8 +2937,8 @@ canvas {
 
   .step-btn,
   .preset-btn {
-    width: 100%;
-    height: 25px;
+    width: 40px;
+    height: 40px;
     border-radius: 999px;
   }
 
@@ -2952,8 +2958,8 @@ canvas {
     margin-top: 0;
     padding: var(--space-2);
     border: 0;
-    border-radius: 12px;
-    background: var(--control);
+    border-radius: 14px;
+    background: color-mix(in oklch, var(--control), var(--surface-2) 18%);
     scroll-snap-align: none;
   }
 
@@ -3011,28 +3017,37 @@ canvas {
   .loop-header {
     min-height: 100%;
     padding: 0;
-    grid-template-columns: 1fr auto;
-    column-gap: var(--space-1);
-    align-content: space-between;
+    grid-template-columns: 24px auto;
+    grid-template-rows: auto;
+    column-gap: var(--space-2);
+    row-gap: 0;
+    align-content: center;
     align-items: center;
+    justify-content: start;
   }
 
   .loop-header span {
-    display: grid;
-    gap: var(--space-2);
+    display: contents;
     font-size: 0;
   }
 
   .loop-header i {
-    width: 18px;
-    height: 18px;
+    grid-column: 1;
+    grid-row: 1;
+    width: 24px;
+    height: 24px;
   }
 
   .loop-header strong {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: start;
     min-width: 0;
-    width: 54px;
-    height: 25px;
-    font-size: 0.72rem;
+    width: auto;
+    min-width: 64px;
+    height: 40px;
+    padding: 0 var(--space-3);
+    font-size: 1.02rem;
     background: color-mix(in oklch, var(--surface-3), transparent 10%);
   }
 
@@ -3041,14 +3056,24 @@ canvas {
   }
 
   .stage {
-    grid-template-columns: 88px minmax(0, 1fr);
+    grid-template-columns: 58px minmax(0, 1fr);
     border-radius: 14px;
   }
 
   .lane-labels {
-    padding: 0 var(--space-2);
-    font-size: 0.64rem;
-    letter-spacing: 0.01em;
+    padding: 0 var(--space-1);
+    justify-items: center;
+    color: var(--text);
+    font-size: 0.72rem;
+    letter-spacing: 0;
+  }
+
+  .lane-full {
+    display: none;
+  }
+
+  .lane-short {
+    display: inline;
   }
 
   .seek-controls {
@@ -3347,13 +3372,14 @@ canvas {
   }
 
   .stage {
-    grid-template-columns: 88px minmax(0, 1fr);
+    grid-template-columns: 54px minmax(0, 1fr);
     border-radius: var(--radius-2);
   }
 
   .lane-labels {
-    padding: 0 var(--space-2);
-    font-size: 0.625rem;
+    padding: 0 var(--space-1);
+    justify-items: center;
+    font-size: 0.68rem;
   }
 
   .seek-controls {
@@ -3375,8 +3401,8 @@ canvas {
   }
 
   .settings-panel {
-    height: 64px;
-    max-height: 64px;
+    height: 76px;
+    max-height: 76px;
     border-radius: var(--radius-2);
   }
 
@@ -3394,7 +3420,7 @@ canvas {
   }
 
   .control-stepper {
-    min-height: 56px;
+    min-height: 66px;
     padding: var(--space-1) var(--space-2);
     grid-template-columns: minmax(0, 1fr) auto;
     gap: var(--space-1);
@@ -3405,22 +3431,24 @@ canvas {
   .control-stepper span {
     font-size: 0;
     gap: 0;
-    grid-template-columns: 18px;
+    grid-template-columns: 22px minmax(0, 1fr);
   }
 
   .control-stepper span i {
-    width: 18px;
-    height: 18px;
+    width: 22px;
+    height: 22px;
   }
 
   .control-stepper strong {
     margin-top: 0;
-    font-size: var(--type-md);
+    font-size: 0.95rem;
   }
 
   .stepper-actions {
     margin-left: auto;
-    grid-template-columns: repeat(2, 30px);
+    width: 76px;
+    height: 36px;
+    grid-template-columns: repeat(2, 36px);
     gap: var(--space-1);
   }
 
@@ -3432,8 +3460,8 @@ canvas {
 
   .step-btn,
   .preset-btn {
-    width: 28px;
-    height: 28px;
+    width: 36px;
+    height: 36px;
     font-size: 1rem;
   }
 
