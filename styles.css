@@ -2147,6 +2147,98 @@ canvas {
   }
 }
 
+@media (min-width: 901px) and (max-width: 1320px) {
+  .start-screen {
+    grid-template-rows: auto auto;
+  }
+
+  .start-copy {
+    width: 100%;
+    grid-template-columns: minmax(420px, 1fr) minmax(340px, 430px);
+  }
+
+  .start-copy h2 {
+    max-width: 10ch;
+  }
+
+  .start-selection {
+    position: sticky;
+    top: 0;
+    right: auto;
+    align-self: start;
+    width: 100%;
+    border-radius: 0 0 18px 18px;
+  }
+
+  .song-browser {
+    width: 100%;
+    padding-right: clamp(360px, 38vw, 450px);
+  }
+
+  .song-card {
+    grid-template-columns: 56px minmax(0, 1fr);
+  }
+
+  .song-title,
+  .song-artist,
+  .song-line {
+    overflow: visible;
+    text-overflow: clip;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 900px) {
+  .start-screen {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    gap: var(--space-4);
+  }
+
+  .start-copy {
+    grid-template-columns: 1fr;
+  }
+
+  .start-copy h2 {
+    max-width: 10ch;
+    font-size: 2.35rem;
+  }
+
+  .start-selection {
+    position: sticky;
+    top: 0;
+    right: auto;
+    grid-column: 1;
+    grid-row: auto;
+    width: 100%;
+    border-radius: 0 0 18px 18px;
+  }
+
+  .song-browser {
+    width: 100%;
+    padding-right: 0;
+  }
+
+  .library-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .library-tabs {
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .song-card {
+    grid-template-columns: 56px minmax(0, 1fr);
+  }
+
+  .song-title,
+  .song-artist,
+  .song-line {
+    overflow: visible;
+    text-overflow: clip;
+  }
+}
+
 @media (max-width: 760px) {
   .drum-app {
     height: 100dvh;
