@@ -137,7 +137,7 @@ input {
 }
 
 .app-logo {
-  width: 118px;
+  width: 126px;
   height: auto;
   display: block;
   object-fit: contain;
@@ -145,7 +145,7 @@ input {
 }
 
 :root[data-theme="light"] .app-logo {
-  filter: invert(1);
+  filter: none;
 }
 
 .library-btn {
@@ -523,7 +523,7 @@ p {
 }
 
 .drum-app:not(.is-playing) .app-logo {
-  width: 142px;
+  width: 152px;
 }
 
 .drum-app:not(.is-playing) .transport,
@@ -1790,7 +1790,7 @@ canvas {
   }
 
   .app-logo {
-    width: 104px;
+    width: 112px;
   }
 
   .player-meta {
@@ -1842,7 +1842,7 @@ canvas {
   }
 
   .app-logo {
-    width: 104px;
+    width: 112px;
   }
 
   .transport {
@@ -2055,7 +2055,7 @@ canvas {
   }
 
   .app-logo {
-    width: 92px;
+    width: 96px;
   }
 
   .library-btn {
