@@ -675,7 +675,11 @@ function updateSelectedSongPanel() {
   const meta = trackMeta(track);
   const display = trackDisplayParts(track);
   els.selectedSongTitle.textContent = display.title;
-  els.selectedSongMeta.textContent = `🎵 ${meta.bpm} · ⏱ ${meta.duration} · 🥁 ${meta.notes}`;
+  els.selectedSongMeta.innerHTML = `
+    <span><i class="fa-solid fa-gauge" aria-hidden="true"></i>${meta.bpm}</span>
+    <span><i class="fa-solid fa-clock" aria-hidden="true"></i>${meta.duration}</span>
+    <span><i class="fa-solid fa-drum" aria-hidden="true"></i>${meta.notes}</span>
+  `;
 }
 
 function selectLibraryTrack(trackId) {

@@ -156,15 +156,15 @@ input {
 
 .menu-btn {
   margin-left: var(--space-1);
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   color: var(--text);
-  background: var(--control);
+  background: transparent;
 }
 
 .menu-btn .fa-bars {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
 }
 
 .library-btn {
@@ -399,7 +399,8 @@ p {
   mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M416 208c0 45.9-14.9 88.3-40 122.7l124.7 124.6c15.6 15.6 15.6 40.9 0 56.5s-40.9 15.6-56.5 0L319.5 387.1C285.2 412.2 242.8 427 196.9 427 82.8 427-9.6 334.6-9.6 220.5S82.8 14 196.9 14 416 106.4 416 220.5V208zm-219.1 147c79.4 0 143.8-64.4 143.8-143.8S276.3 67.4 196.9 67.4 53.1 131.8 53.1 211.2 117.5 355 196.9 355z'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 
-.control-stepper .fa-gauge {
+.control-stepper .fa-gauge,
+.selected-song-meta .fa-gauge {
   -webkit-mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M256 32C114.6 32 0 146.6 0 288c0 52.8 16 101.8 43.4 142.5 8.9 13.2 24.2 21.5 40.1 21.5h345c15.9 0 31.2-8.3 40.1-21.5C496 389.8 512 340.8 512 288 512 146.6 397.4 32 256 32zm0 64c106 0 192 86 192 192 0 35.1-9.4 68-25.9 96H89.9C73.4 356 64 323.1 64 288 64 182 150 96 256 96zm104.5 88.3c12.4 12.4 12.5 32.6.1 45.1l-82.7 83.2c-16.9 17-44.5 17-61.5.1s-17-44.5-.1-61.5l83.1-82.8c12.5-12.5 32.7-12.5 45.1-.1z'/%3E%3C/svg%3E") center / contain no-repeat;
   mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M256 32C114.6 32 0 146.6 0 288c0 52.8 16 101.8 43.4 142.5 8.9 13.2 24.2 21.5 40.1 21.5h345c15.9 0 31.2-8.3 40.1-21.5C496 389.8 512 340.8 512 288 512 146.6 397.4 32 256 32zm0 64c106 0 192 86 192 192 0 35.1-9.4 68-25.9 96H89.9C73.4 356 64 323.1 64 288 64 182 150 96 256 96zm104.5 88.3c12.4 12.4 12.5 32.6.1 45.1l-82.7 83.2c-16.9 17-44.5 17-61.5.1s-17-44.5-.1-61.5l83.1-82.8c12.5-12.5 32.7-12.5 45.1-.1z'/%3E%3C/svg%3E") center / contain no-repeat;
 }
@@ -719,20 +720,33 @@ p {
 }
 
 .start-selection small {
-  min-height: 34px;
+  min-height: 22px;
   width: fit-content;
   max-width: 100%;
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
   margin-top: var(--space-3);
-  border-radius: 999px;
-  padding: 0 var(--space-3);
-  background: var(--control);
   color: var(--muted);
-  font-size: var(--type-sm);
-  line-height: 1;
+  font-size: var(--type-xs);
+  line-height: 1.15;
   font-weight: var(--weight-label);
+}
+
+.selected-song-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   white-space: nowrap;
+}
+
+.selected-song-meta i {
+  width: 12px;
+  height: 12px;
+  display: block;
+  background: currentColor;
+  opacity: 0.75;
 }
 
 .selected-play {
@@ -776,7 +790,7 @@ p {
   width: min(1180px, 100%);
   min-width: 0;
   margin: 0 auto;
-  padding-right: min(470px, 38vw);
+  padding-right: clamp(270px, 36vw, 450px);
 }
 
 .library-toolbar {
@@ -2158,18 +2172,18 @@ canvas {
   }
 
   .icon-btn.menu-btn {
-    width: 52px;
-    height: 52px;
+    width: 44px;
+    height: 44px;
     margin-left: auto;
-    border-radius: 16px;
+    border-radius: 13px;
     background: var(--cue);
     color: var(--ink-on-cue);
-    box-shadow: 0 4px 0 var(--shadow-hard);
+    box-shadow: 0 2px 0 color-mix(in oklch, var(--shadow-hard), transparent 12%);
   }
 
   .icon-btn.menu-btn .fa-bars {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
   }
 
   .menu-is-open .menu-btn {
@@ -2233,7 +2247,7 @@ canvas {
   }
 
   .start-screen {
-    padding: 0 var(--space-3) 158px;
+    padding: 0 var(--space-3) 148px;
     gap: var(--space-4);
   }
 
@@ -2248,15 +2262,15 @@ canvas {
   .start-selection {
     position: fixed;
     top: auto;
-    right: var(--space-3);
-    bottom: calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
-    left: var(--space-3);
+    right: 0;
+    bottom: 0;
+    left: 0;
     width: auto;
-    padding: var(--space-3);
-    border-radius: 18px;
+    padding: var(--space-3) var(--space-3) calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+    border-radius: 18px 18px 0 0;
     box-shadow:
-      inset 0 0 0 1px var(--border),
-      0 16px 34px color-mix(in oklch, var(--shadow-soft), transparent 36%);
+      inset 0 1px 0 var(--border),
+      0 -16px 34px color-mix(in oklch, var(--shadow-soft), transparent 44%);
   }
 
   .start-selection strong {
@@ -2264,7 +2278,13 @@ canvas {
   }
 
   .start-selection small {
+    font-size: var(--type-2xs);
     white-space: normal;
+  }
+
+  .selected-song-meta i {
+    width: 10px;
+    height: 10px;
   }
 
   .selected-play {
