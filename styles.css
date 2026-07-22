@@ -681,39 +681,6 @@ p {
   gap: var(--space-3);
 }
 
-.theme-toggle {
-  min-height: 36px;
-  border: 0;
-  border-radius: 999px;
-  padding: 0 12px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--control);
-  color: var(--text);
-  cursor: pointer;
-  font-size: var(--type-sm);
-  font-weight: var(--weight-label);
-  transition: background 150ms ease, color 150ms ease, transform 150ms ease;
-}
-
-.theme-toggle:hover,
-.theme-toggle:focus-visible {
-  background: var(--control-hover);
-}
-
-.theme-toggle i {
-  width: 14px;
-  height: 14px;
-  display: block;
-  background: currentColor;
-}
-
-:root[data-theme="light"] .theme-toggle .theme-light,
-:root:not([data-theme="light"]) .theme-toggle .theme-dark {
-  display: none;
-}
-
 .start-copy h2 {
   margin: var(--space-2) 0 0;
   max-width: 16ch;
@@ -1403,6 +1370,60 @@ p {
   gap: var(--space-2);
 }
 
+.menu-preferences {
+  min-height: 46px;
+  border-radius: 12px;
+  padding: 0 var(--space-2) 0 var(--space-3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  background: var(--surface);
+}
+
+.menu-preferences > span {
+  color: var(--muted);
+  font-size: var(--type-sm);
+  font-weight: var(--weight-label);
+}
+
+.theme-toggle {
+  min-width: 126px;
+  height: 34px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  background: var(--control);
+  color: var(--text);
+  cursor: pointer;
+  font-size: var(--type-xs);
+  font-weight: var(--weight-label);
+  transition: background 150ms ease, color 150ms ease, transform 150ms ease;
+}
+
+.theme-toggle:hover,
+.theme-toggle:focus-visible {
+  background: var(--control-hover);
+}
+
+.theme-toggle:active {
+  transform: translateY(1px);
+}
+
+.theme-toggle .fa-solid {
+  width: 14px;
+  height: 14px;
+}
+
+:root[data-theme="light"] .theme-dark,
+:root[data-theme="dark"] .theme-light {
+  display: none;
+}
+
 .menu-action,
 .midi-connect {
   width: 100%;
@@ -1486,6 +1507,20 @@ p {
   outline-color: var(--focus-ring);
 }
 
+.import-field {
+  min-height: 92px;
+  border-radius: 14px;
+  padding: var(--space-3);
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  background: var(--surface);
+}
+
+.import-field input {
+  max-width: 100%;
+}
+
 .section-headline {
   display: flex;
   align-items: center;
@@ -1513,20 +1548,60 @@ p {
 
 .song-editor-list {
   min-height: 0;
-  max-height: 42dvh;
-  overflow: auto;
   display: grid;
   gap: var(--space-3);
-  padding-right: var(--space-1);
 }
 
 .song-editor-item {
   display: grid;
-  grid-template-columns: 54px minmax(0, 1fr);
+  grid-template-columns: 32px 54px minmax(0, 1fr);
+  align-items: center;
   gap: var(--space-3);
   padding: var(--space-3);
   border-radius: 12px;
   background: var(--surface);
+  outline: 1px solid transparent;
+  transition: background 150ms ease, opacity 150ms ease, outline-color 150ms ease, transform 150ms ease;
+}
+
+.song-editor-item.is-dragging {
+  opacity: 0.48;
+}
+
+.song-editor-item.is-drop-target {
+  background: color-mix(in oklch, var(--cue), var(--surface) 84%);
+  outline-color: var(--cue);
+  transform: translateY(1px);
+}
+
+.drag-handle {
+  width: 32px;
+  height: 54px;
+  border: 0;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: var(--control);
+  color: var(--muted);
+  cursor: grab;
+  transition: background 150ms ease, color 150ms ease, transform 150ms ease;
+}
+
+.drag-handle:hover,
+.drag-handle:focus-visible {
+  background: var(--control-hover);
+  color: var(--text);
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+  transform: translateY(1px);
+}
+
+.drag-handle i {
+  width: 14px;
+  height: 14px;
+  display: block;
 }
 
 .editor-art {
@@ -1551,29 +1626,6 @@ p {
   min-width: 0;
   display: grid;
   gap: var(--space-2);
-}
-
-.spotify-field {
-  grid-column: 1 / -1;
-}
-
-.editor-actions {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.editor-actions .icon-btn {
-  width: 32px;
-  height: 32px;
-  background: var(--control);
-}
-
-.editor-actions .icon-btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
 }
 
 .playfield {
