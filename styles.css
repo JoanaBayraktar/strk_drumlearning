@@ -1162,16 +1162,16 @@ p {
 
 .play-settings-sheet .control-stepper,
 .play-settings-sheet .switch-row {
-  min-height: 64px;
+  min-height: 72px;
   margin-top: 0;
-  padding: var(--space-3);
+  padding: var(--space-3) var(--space-4);
   border: 0;
   border-radius: 0;
   background: transparent;
 }
 
 .play-settings-sheet .control-stepper[data-setting="hitWindow"] {
-  min-height: 64px;
+  min-height: 72px;
 }
 
 .play-settings-sheet .control-stepper + .control-stepper,
@@ -1180,23 +1180,23 @@ p {
 }
 
 .play-settings-sheet .control-stepper {
-  grid-template-columns: 32px minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  column-gap: var(--space-3);
+  column-gap: var(--space-4);
 }
 
 .play-settings-sheet .control-stepper > div:first-child {
-  display: contents;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: var(--space-3);
+  row-gap: 6px;
 }
 
 .play-settings-sheet .control-stepper span {
-  display: grid;
-  grid-template-columns: 32px minmax(0, 1fr);
-  grid-column: 1 / 3;
-  grid-row: 1;
-  align-self: stretch;
-  align-items: center;
-  column-gap: var(--space-3);
+  display: contents;
   min-width: 0;
   color: var(--muted);
   font-size: var(--type-xs);
@@ -1206,15 +1206,19 @@ p {
 }
 
 .play-settings-sheet .control-stepper span em {
-  align-self: start;
-  margin-top: 1px;
+  grid-column: 2;
+  grid-row: 1;
+  align-self: end;
   font-style: normal;
+  line-height: 1;
 }
 
 .play-settings-sheet .control-stepper span i,
 .play-settings-sheet .switch-copy i {
   grid-column: 1;
+  grid-row: 1 / 3;
   align-self: center;
+  justify-self: start;
   width: 24px;
   height: 24px;
   color: var(--cue);
@@ -1222,9 +1226,8 @@ p {
 
 .play-settings-sheet .control-stepper strong {
   grid-column: 2;
-  grid-row: 1;
-  align-self: end;
-  margin-top: 20px;
+  grid-row: 2;
+  align-self: start;
   min-width: 0;
   overflow: visible;
   color: var(--text);
@@ -1239,43 +1242,52 @@ p {
 }
 
 .play-settings-sheet .stepper-actions {
-  grid-column: 3;
-  grid-row: 1;
-  width: 84px;
-  grid-template-columns: repeat(2, 38px);
+  width: 96px;
+  height: 44px;
+  grid-template-columns: repeat(2, 44px);
   gap: var(--space-2);
-  padding: 2px;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
   background: color-mix(in oklch, var(--surface-3), transparent 8%);
 }
 
 .play-settings-sheet .step-btn {
-  width: 38px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
 }
 
 .play-settings-sheet .preset-actions {
-  grid-column: 3;
-  grid-row: 1;
-  width: 108px;
-  grid-template-columns: repeat(3, 32px);
-  gap: var(--space-1);
-  padding: 2px;
+  width: 116px;
+  height: 44px;
+  grid-template-columns: repeat(3, 36px);
+  gap: 4px;
+  padding: 4px;
+  align-items: center;
+  justify-content: center;
   background: color-mix(in oklch, var(--surface-3), transparent 8%);
 }
 
 .play-settings-sheet .preset-btn {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .play-settings-sheet .switch-row {
-  grid-template-columns: 32px minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  column-gap: var(--space-3);
+  column-gap: var(--space-4);
 }
 
 .play-settings-sheet .switch-copy {
-  display: contents;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--space-3);
 }
 
 .play-settings-sheet .switch-copy span {
@@ -1294,20 +1306,18 @@ p {
 }
 
 .play-settings-sheet .switch-control {
-  grid-column: 3;
-  grid-row: 1;
-  width: 62px;
-  height: 34px;
+  width: 70px;
+  height: 44px;
   padding: 4px;
 }
 
 .play-settings-sheet .switch-control span {
-  width: 26px;
-  height: 26px;
+  width: 36px;
+  height: 36px;
 }
 
 .play-settings-sheet .switch-control.is-on span {
-  transform: translateX(28px);
+  transform: translateX(26px);
 }
 
 .play-settings-library {
@@ -3122,44 +3132,48 @@ canvas {
 
   .play-settings-sheet .control-stepper,
   .play-settings-sheet .switch-row {
-    min-height: 60px;
-    padding: var(--space-2) var(--space-3);
-    grid-template-columns: 28px minmax(0, 1fr) auto;
-    column-gap: var(--space-2);
+    min-height: 76px;
+    padding: 13px var(--space-4);
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: var(--space-3);
     align-items: center;
   }
 
   .play-settings-sheet .control-stepper > div:first-child {
-    display: contents;
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: center;
+    column-gap: var(--space-3);
+    row-gap: 7px;
   }
 
   .play-settings-sheet .control-stepper span {
-    display: grid;
-    grid-template-columns: 28px minmax(0, 1fr);
-    grid-column: 1 / 3;
-    grid-row: 1;
-    align-self: stretch;
-    align-items: center;
-    column-gap: var(--space-2);
+    display: contents;
     font-size: var(--type-2xs);
   }
 
   .play-settings-sheet .control-stepper span em {
-    align-self: start;
-    margin-top: 0;
+    grid-column: 2;
+    grid-row: 1;
+    align-self: end;
     font-style: normal;
+    line-height: 1;
   }
 
   .play-settings-sheet .control-stepper span i {
+    grid-column: 1;
+    grid-row: 1 / 3;
     align-self: center;
-    width: 21px;
-    height: 21px;
+    justify-self: start;
+    width: 22px;
+    height: 22px;
   }
 
   .play-settings-sheet .control-stepper strong {
     grid-column: 2;
-    grid-row: 1;
-    align-self: end;
+    grid-row: 2;
+    align-self: start;
     margin-top: 0;
     overflow: visible;
     font-size: var(--type-md);
@@ -3167,15 +3181,19 @@ canvas {
   }
 
   .play-settings-sheet .switch-copy {
-    display: contents;
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    align-items: center;
+    column-gap: var(--space-3);
   }
 
   .play-settings-sheet .switch-copy i {
     grid-column: 1;
     grid-row: 1;
     align-self: center;
-    width: 21px;
-    height: 21px;
+    justify-self: start;
+    width: 22px;
+    height: 22px;
   }
 
   .play-settings-sheet .switch-copy span {
@@ -3190,38 +3208,41 @@ canvas {
   }
 
   .play-settings-sheet .stepper-actions {
-    width: 84px;
-    grid-template-columns: repeat(2, 38px);
+    width: 96px;
+    height: 44px;
+    grid-template-columns: repeat(2, 44px);
     gap: var(--space-2);
   }
 
   .play-settings-sheet .step-btn {
-    width: 38px;
-    height: 34px;
+    width: 44px;
+    height: 44px;
   }
 
   .play-settings-sheet .preset-actions {
-    width: 100px;
-    grid-template-columns: repeat(3, 30px);
+    width: 116px;
+    height: 44px;
+    grid-template-columns: repeat(3, 36px);
+    gap: 4px;
   }
 
   .play-settings-sheet .preset-btn {
-    width: 30px;
-    height: 30px;
+    width: 36px;
+    height: 36px;
   }
 
   .play-settings-sheet .switch-control {
-    width: 60px;
-    height: 32px;
+    width: 70px;
+    height: 44px;
   }
 
   .play-settings-sheet .switch-control span {
-    width: 24px;
-    height: 24px;
+    width: 36px;
+    height: 36px;
   }
 
   .play-settings-sheet .switch-control.is-on span {
-    transform: translateX(28px);
+    transform: translateX(26px);
   }
 
   .play-settings-library {
