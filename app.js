@@ -50,6 +50,8 @@ const sampleManifest = {
   leadGuitar: { url: "./assets/samples/emilyguitar-lead-57.wav", rootNote: 57 }
 };
 
+const generatedBackingBoost = 2.55;
+
 const midiDrumMap = new Map([
   [35, "kick"],
   [36, "kick"],
@@ -1365,7 +1367,7 @@ function playBackingNote(event) {
     sampleId === "bass" ? 0.22 :
     sampleId === "leadGuitar" ? 0.13 :
     0.105;
-  const sampledVolume = sampledPartVolume * state.backingVolume * velocity;
+  const sampledVolume = Math.min(0.82, sampledPartVolume * state.backingVolume * velocity * generatedBackingBoost);
 
   if (sample) {
     const rate = midiFrequency(event.note) / midiFrequency(sample.rootNote);
@@ -1377,7 +1379,7 @@ function playBackingNote(event) {
   }
 
   const partVolume = event.part === "bass" ? 0.032 : 0.018;
-  const volume = partVolume * state.backingVolume * velocity;
+  const volume = Math.min(0.24, partVolume * state.backingVolume * velocity * generatedBackingBoost);
   const now = state.audio.currentTime;
   const osc = state.audio.createOscillator();
   const filter = state.audio.createBiquadFilter();
