@@ -571,10 +571,13 @@ function updateHeaderScrollState() {
   els.app.classList.toggle("has-library-scroll", scrolled);
 }
 
-async function startPractice(trackId) {
+function startPractice(trackId) {
   if (state.starting) return;
-  await ensureAudio();
-  primeMobileAudio();
+  ensureAudio()
+    .then(() => primeMobileAudio())
+    .catch((error) => {
+      console.warn("Audio start deferred", error);
+    });
   state.starting = true;
   els.app.classList.add("is-starting");
   window.setTimeout(() => {
