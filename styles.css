@@ -1598,16 +1598,18 @@ p {
   position: absolute;
   inset-block: 0;
   left: var(--loop-start, 0%);
+  z-index: 2;
   width: max(0px, calc(var(--loop-end, 0%) - var(--loop-start, 0%)));
   border-radius: inherit;
   background: transparent;
   opacity: 0;
+  pointer-events: none;
   transition: opacity 160ms ease;
 }
 
 .drum-app.has-loop .progress-wrap::before {
-  background: color-mix(in oklch, var(--cue), white 24%);
-  box-shadow: 0 0 14px var(--cue-soft);
+  background: color-mix(in oklch, var(--warning), white 8%);
+  box-shadow: 0 0 14px color-mix(in oklch, var(--warning), transparent 58%);
   opacity: 1;
 }
 
@@ -2373,12 +2375,16 @@ canvas {
 }
 
 .loop-panel.is-on .loop-header {
+  color: var(--muted);
+}
+
+.loop-panel.is-on .loop-header i {
   color: var(--cue);
 }
 
 .loop-panel.is-on .loop-header strong {
-  background: var(--cue);
-  color: var(--ink-on-cue);
+  background: var(--control);
+  color: var(--text);
 }
 
 .loop-range {

@@ -1737,11 +1737,9 @@ function draw() {
   drawHitEffects(hitX, laneHeight, laneAreaHeight);
   drawSeekHint(hitX, laneAreaHeight, now);
 
-  const progressStart = practiceStartTime();
-  const progressEnd = practiceEndTime();
-  const progressNow = Math.max(progressStart, Math.min(progressEnd, now));
-  els.progress.style.width = `${Math.min(100, ((progressNow - progressStart) / Math.max(1, progressEnd - progressStart)) * 100)}%`;
   const durationSafe = Math.max(1, trackDuration(state.track));
+  const songProgress = Math.min(100, Math.max(0, (now / durationSafe) * 100));
+  els.progress.style.width = `${songProgress}%`;
   const loopStartPct = Math.min(100, Math.max(0, (loopStartTime() / durationSafe) * 100));
   const loopEndPct = Math.min(100, Math.max(loopStartPct, (loopEndTime() / durationSafe) * 100));
   els.progress.parentElement.style.setProperty("--loop-start", `${loopStartPct}%`);
