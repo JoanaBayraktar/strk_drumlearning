@@ -2,7 +2,7 @@
 <html lang="de">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>STRK</title>
     <script>
       const strkTheme = localStorage.getItem("strk-theme") || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
@@ -245,7 +245,7 @@
           <div class="play-settings-controls">
             <div class="control-stepper" data-setting="backing">
               <div>
-                <span><i class="fa-solid fa-volume" aria-hidden="true"></i>Backing</span>
+                <span><i class="fa-solid fa-volume" aria-hidden="true"></i><em>Backing</em></span>
                 <strong id="backingVolumeLabel">25%</strong>
               </div>
               <div class="stepper-actions">
@@ -257,7 +257,7 @@
 
             <div class="control-stepper" data-setting="hitWindow">
               <div>
-                <span><i class="fa-brands fa-mixer" aria-hidden="true"></i>Präzision</span>
+                <span><i class="fa-brands fa-mixer" aria-hidden="true"></i><em>Präzision</em></span>
                 <strong id="hitWindowLabel">Medium</strong>
               </div>
               <div class="preset-actions" aria-label="Accuracy presets">

@@ -119,7 +119,8 @@ const state = {
   midiDeviceName: "",
   midiLastNote: "",
   audioUnlocked: false,
-  audioUnlocking: null
+  audioUnlocking: null,
+  lastTouchEnd: 0
 };
 
 const els = {
@@ -1042,6 +1043,30 @@ function primeMobileAudio() {
   osc.stop(now + 0.025);
 }
 
+function activateAudioFromGesture() {
+  if (!state.audio) state.audio = new (window.AudioContext || window.webkitAudioContext)();
+  if (state.audio.state === "suspended") {
+    state.audio.resume().catch((error) => console.warn("Audio resume blocked", error));
+  }
+  primeMobileAudio();
+  if (!state.noiseBuffer) {
+    const length = Math.floor(state.audio.sampleRate * 0.25);
+    const buffer = state.audio.createBuffer(1, length, state.audio.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < length; i++) data[i] = Math.random() * 2 - 1;
+    state.noiseBuffer = buffer;
+  }
+  preloadSamples();
+}
+
+function preventDoubleTapZoom(event) {
+  const now = Date.now();
+  if (now - state.lastTouchEnd < 340) {
+    event.preventDefault();
+  }
+  state.lastTouchEnd = now;
+}
+
 function preloadSamples() {
   for (const id of Object.keys(sampleManifest)) loadSample(id);
 }
@@ -1825,6 +1850,7 @@ function init() {
   document.addEventListener("pointerdown", ensureAudio, { once: true });
   document.addEventListener("touchstart", ensureAudio, { once: true, passive: true });
   document.addEventListener("touchend", ensureAudio, { once: true, passive: true });
+  document.addEventListener("touchend", preventDoubleTapZoom, { passive: false });
   document.addEventListener("keydown", ensureAudio, { once: true });
   els.library.addEventListener("click", openStartScreen);
   els.menu.addEventListener("click", () => setMenuOpen(true));
@@ -1836,6 +1862,10 @@ function init() {
   els.playSettingsLibrary.addEventListener("click", openStartScreen);
   for (const button of els.menuSectionButtons) {
     button.addEventListener("click", () => focusMenuSection(button.dataset.menuSection));
+  }
+  for (const audioTarget of [els.play, els.selectedSongPlay, els.canvas, ...els.laneButtons]) {
+    audioTarget?.addEventListener("pointerdown", activateAudioFromGesture, { passive: true });
+    audioTarget?.addEventListener("touchstart", activateAudioFromGesture, { passive: true });
   }
   els.play.addEventListener("click", togglePlay);
   els.selectedSongPlay.addEventListener("click", () => startPractice(state.selectedTrackId));
