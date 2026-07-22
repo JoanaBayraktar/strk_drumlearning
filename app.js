@@ -497,14 +497,17 @@ function beginPlayback(forceStart = false) {
   els.play.classList.add("is-playing");
 }
 
-async function togglePlay() {
-  await ensureAudio();
-  primeMobileAudio();
+function togglePlay() {
   if (state.playing) {
     state.pausedAt = currentTime();
     state.playing = false;
     els.play.classList.remove("is-playing");
   } else {
+    ensureAudio()
+      .then(() => primeMobileAudio())
+      .catch((error) => {
+        console.warn("Audio playback deferred", error);
+      });
     beginPlayback();
   }
 }
@@ -1702,8 +1705,8 @@ function draw() {
   drawLoopRegion(width, laneAreaHeight, hitX, pxPerMs, now);
 
   for (let i = 1; i < lanes.length; i++) {
-    ctx.strokeStyle = i === 3 || i === 6 ? colors.gridMajor : colors.gridMinor;
-    ctx.lineWidth = i === 3 || i === 6 ? 2.8 : 1.6;
+    ctx.strokeStyle = i === 3 || i === 6 || i === 7 ? colors.gridMajor : colors.gridMinor;
+    ctx.lineWidth = i === 7 ? 3.2 : i === 3 || i === 6 ? 2.8 : 1.6;
     const y = i * laneHeight;
     ctx.beginPath();
     ctx.moveTo(0, y);
@@ -1895,6 +1898,18 @@ function drawTimeGrid(width, laneAreaHeight, hitX, pxPerMs, now) {
     ctx.moveTo(x, 0);
     ctx.lineTo(x, laneAreaHeight);
     ctx.stroke();
+
+    if (inBar && step >= 0) {
+      const barNumber = Math.floor(step / 16) + 1;
+      ctx.save();
+      ctx.font = "800 10px Sora, system-ui, sans-serif";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+      ctx.fillStyle = colors.labelText;
+      ctx.globalAlpha = 0.54;
+      ctx.fillText(String(barNumber), x + 5, 6);
+      ctx.restore();
+    }
   }
 }
 

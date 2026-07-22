@@ -1655,6 +1655,14 @@ p {
   display: none;
 }
 
+.lane-labels div:nth-child(7) {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  align-items: center;
+  border-bottom: 2px solid var(--border-strong);
+}
+
 .chart-shell {
   position: relative;
   min-width: 0;
