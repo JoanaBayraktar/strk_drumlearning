@@ -1705,8 +1705,8 @@ function draw() {
   drawLoopRegion(width, laneAreaHeight, hitX, pxPerMs, now);
 
   for (let i = 1; i < lanes.length; i++) {
-    ctx.strokeStyle = i === 3 || i === 6 || i === 7 ? colors.gridMajor : colors.gridMinor;
-    ctx.lineWidth = i === 7 ? 3.2 : i === 3 || i === 6 ? 2.8 : 1.6;
+    ctx.strokeStyle = i === 3 || i === 7 ? colors.gridMajor : colors.gridMinor;
+    ctx.lineWidth = i === 7 ? 3.2 : i === 3 ? 2.8 : 1.6;
     const y = i * laneHeight;
     ctx.beginPath();
     ctx.moveTo(0, y);

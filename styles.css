@@ -1660,6 +1660,7 @@ p {
   height: 100%;
   display: grid;
   align-items: center;
+  justify-items: center;
   border-bottom: 2px solid var(--border-strong);
 }
 
