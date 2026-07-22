@@ -109,6 +109,7 @@ const state = {
   accuracyMode: "medium",
   countIn: true,
   countBeat: -1,
+  countInTargetTime: null,
   loopEnabled: false,
   loopStartBar: 1,
   loopEndBar: 4,
@@ -385,7 +386,7 @@ function prepareBackingAudio() {
 }
 
 function backingAudioTimeSeconds() {
-  return Math.max(0, currentTime() / 1000);
+  return Math.max(0, (activeCountInTarget() ?? currentTime()) / 1000);
 }
 
 function setBackingAudioPosition(time = currentTime()) {
@@ -410,7 +411,7 @@ function syncBackingAudio(allowPlay = false) {
   audio.volume = state.muted ? 0 : state.backingVolume;
 
   const songTime = currentTime();
-  if (!state.playing || state.completed || songTime < 0) {
+  if (!state.playing || state.completed || songTime < 0 || activeCountInTarget() !== null) {
     stopBackingAudio(true);
     return;
   }
@@ -484,6 +485,7 @@ function reset() {
   state.attempts = 0;
   state.judgement = "Ready";
   state.completed = false;
+  state.countInTargetTime = null;
   cancelAnimationFrame(state.scoreAnimation);
   clearTimeout(state.finishTimer);
   hideCompletion();
@@ -500,6 +502,12 @@ function reset() {
 function currentTime() {
   if (state.playing) return state.pausedAt + (performance.now() - state.startedAt) * state.speed;
   return state.pausedAt;
+}
+
+function activeCountInTarget() {
+  if (!state.countIn || !Number.isFinite(state.countInTargetTime)) return null;
+  const now = currentTime();
+  return now < state.countInTargetTime ? state.countInTargetTime : null;
 }
 
 function seekBounds() {
@@ -549,6 +557,7 @@ function seekTo(time) {
   state.startedAt = performance.now();
   state.completed = false;
   state.countBeat = -1;
+  state.countInTargetTime = null;
   state.judgement = `Start ${formatTime(next)}`;
   state.seekHintUntil = performance.now() + 720;
   hideCompletion();
@@ -604,12 +613,15 @@ function beginPlayback(forceStart = false) {
   }
   hideCompletion();
   if (forceStart) state.pausedAt = practiceStartTime();
-  const start = practiceStartTime();
-  if (state.countIn && state.pausedAt <= start + 8) {
-    state.pausedAt = start - countInDuration();
+  const resumeTime = clampSeekTime(Math.max(practiceStartTime(), state.pausedAt));
+  if (state.countIn) {
+    state.countInTargetTime = resumeTime;
+    state.pausedAt = resumeTime - countInDuration();
     state.countBeat = -1;
+  } else {
+    state.countInTargetTime = null;
   }
-  markEventsForSeek(Math.max(start, state.pausedAt));
+  markEventsForSeek(resumeTime);
   state.startedAt = performance.now();
   state.playing = true;
   els.play.classList.add("is-playing");
@@ -620,6 +632,7 @@ function togglePlay() {
   if (state.playing) {
     state.pausedAt = currentTime();
     state.playing = false;
+    state.countInTargetTime = null;
     els.play.classList.remove("is-playing");
     stopBackingAudio(true);
   } else {
@@ -646,6 +659,7 @@ function openStartScreen() {
   state.pausedAt = currentTime();
   state.playing = false;
   state.starting = false;
+  state.countInTargetTime = null;
   setPlaySettingsOpen(false);
   hideCompletion();
   els.play.classList.remove("is-playing");
@@ -1698,9 +1712,13 @@ function updateMisses() {
 function updateCountIn() {
   if (!state.countIn || !state.playing || !state.audio) return;
   const now = currentTime();
-  const start = practiceStartTime();
-  const countStart = start - countInDuration();
-  if (now < countStart || now >= start) return;
+  const target = activeCountInTarget();
+  if (target === null) {
+    state.countInTargetTime = null;
+    return;
+  }
+  const countStart = target - countInDuration();
+  if (now < countStart || now >= target) return;
   const beat = Math.floor((now - countStart) / beatMs());
   if (beat < 0 || beat === state.countBeat) return;
   state.countBeat = beat;
