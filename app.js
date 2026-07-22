@@ -4,8 +4,8 @@ const lanes = [
   { id: "ride", label: "RIDE", key: "e", color: "#19b7ff", tone: 620 },
   { id: "highTom", label: "HIGH TOM", key: "a", color: "#ffb000", tone: 300 },
   { id: "midTom", label: "MID TOM", key: "s", color: "#ff4d2e", tone: 250 },
-  { id: "snare", label: "SNARE", key: "d", color: "#00a8ff", tone: 210 },
   { id: "lowTom", label: "LOW TOM", key: "f", color: "#a866ff", tone: 180 },
+  { id: "snare", label: "SNARE", key: "d", color: "#00a8ff", tone: 210 },
   { id: "kick", label: "KICK", key: " ", color: "#38ff65", tone: 90 },
   { id: "pedalHat", label: "PEDAL HI-HAT", key: "c", color: "#f0f4ff", tone: 520 }
 ];
@@ -172,6 +172,7 @@ const els = {
   loopRange: document.getElementById("loopRange"),
   loopStartLabel: document.getElementById("loopStartLabel"),
   loopEndLabel: document.getElementById("loopEndLabel"),
+  loopLengthLabel: document.getElementById("loopLengthLabel"),
   startScreen: document.getElementById("startScreen"),
   selectedSongTitle: document.getElementById("selectedSongTitle"),
   selectedSongMeta: document.getElementById("selectedSongMeta"),
@@ -288,6 +289,22 @@ function loopStartTime() {
 
 function loopEndTime() {
   return Math.min(trackDuration(state.track), state.loopEndBar * barMs());
+}
+
+function loopLengthBars() {
+  return Math.max(1, state.loopEndBar - state.loopStartBar + 1);
+}
+
+function currentBarNumber() {
+  return Math.min(totalBars(), Math.max(1, Math.floor(currentTime() / barMs()) + 1));
+}
+
+function setLoopFromCurrentBar(length = loopLengthBars()) {
+  const maxBars = totalBars();
+  const safeLength = Math.min(Math.max(1, length), maxBars);
+  const start = Math.min(currentBarNumber(), Math.max(1, maxBars - safeLength + 1));
+  state.loopStartBar = start;
+  state.loopEndBar = Math.min(maxBars, start + safeLength - 1);
 }
 
 function practiceStartTime() {
@@ -855,16 +872,19 @@ function setAccuracyMode(mode) {
 function updatePracticeControls() {
   const maxBars = totalBars();
   state.loopStartBar = Math.min(Math.max(1, state.loopStartBar), maxBars);
-  state.loopEndBar = Math.min(Math.max(state.loopStartBar + 1, state.loopEndBar), maxBars);
+  state.loopEndBar = Math.min(Math.max(state.loopStartBar, state.loopEndBar), maxBars);
+  const length = loopLengthBars();
   els.countInToggle.classList.toggle("is-on", state.countIn);
   els.countInToggle.setAttribute("aria-pressed", String(state.countIn));
   els.countInLabel.textContent = state.countIn ? "1 2 3" : "Off";
   els.loopPanel.classList.toggle("is-on", state.loopEnabled);
   els.loopToggle.classList.toggle("is-on", state.loopEnabled);
   els.loopToggle.setAttribute("aria-expanded", String(state.loopEnabled));
-  els.loopLabel.textContent = state.loopEnabled ? `${state.loopStartBar}-${state.loopEndBar}` : "Off";
+  els.loopLabel.textContent = state.loopEnabled ? `${length}T` : "Off";
   els.loopStartLabel.textContent = state.loopStartBar.toString();
   els.loopEndLabel.textContent = state.loopEndBar.toString();
+  els.loopLengthLabel.textContent = `${length}T`;
+  els.app.classList.toggle("has-loop", state.loopEnabled);
 }
 
 function updatePlayerMeta() {
@@ -950,6 +970,16 @@ function setLoopBar(which, delta) {
   draw();
 }
 
+function setLoopLength(delta) {
+  setLoopFromCurrentBar(loopLengthBars() + delta);
+  if (state.loopEnabled && (currentTime() < loopStartTime() || currentTime() >= loopEndTime())) {
+    state.pausedAt = loopStartTime();
+    state.startedAt = performance.now();
+  }
+  updatePracticeControls();
+  draw();
+}
+
 function setZoom(value) {
   const min = Number(els.zoom.min);
   const max = Number(els.zoom.max);
@@ -978,6 +1008,8 @@ function stepControl(control, delta) {
     setAccuracyMode(modes[next]);
   } else if (control === "loopStart" || control === "loopEnd") {
     setLoopBar(control, delta);
+  } else if (control === "loopLength") {
+    setLoopLength(delta);
   }
 }
 
@@ -1706,6 +1738,11 @@ function draw() {
   const progressEnd = practiceEndTime();
   const progressNow = Math.max(progressStart, Math.min(progressEnd, now));
   els.progress.style.width = `${Math.min(100, ((progressNow - progressStart) / Math.max(1, progressEnd - progressStart)) * 100)}%`;
+  const durationSafe = Math.max(1, trackDuration(state.track));
+  const loopStartPct = Math.min(100, Math.max(0, (loopStartTime() / durationSafe) * 100));
+  const loopEndPct = Math.min(100, Math.max(loopStartPct, (loopEndTime() / durationSafe) * 100));
+  els.progress.parentElement.style.setProperty("--loop-start", `${loopStartPct}%`);
+  els.progress.parentElement.style.setProperty("--loop-end", `${loopEndPct}%`);
   if (!state.loopEnabled && state.playing && now >= duration + 700) {
     finishSong(duration);
   }
@@ -1969,9 +2006,12 @@ function init() {
   });
   els.loopToggle.addEventListener("click", () => {
     state.loopEnabled = !state.loopEnabled;
-    if (state.loopEnabled && currentTime() < loopStartTime()) {
-      state.pausedAt = loopStartTime();
-      state.startedAt = performance.now();
+    if (state.loopEnabled) {
+      setLoopFromCurrentBar();
+      if (currentTime() < loopStartTime() || currentTime() >= loopEndTime()) {
+        state.pausedAt = loopStartTime();
+        state.startedAt = performance.now();
+      }
     }
     updatePracticeControls();
     draw();

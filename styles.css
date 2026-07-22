@@ -1586,13 +1586,34 @@ p {
 }
 
 .progress-wrap {
+  position: relative;
   height: 6px;
   border-radius: 999px;
   background: var(--border);
   overflow: hidden;
 }
 
+.progress-wrap::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: var(--loop-start, 0%);
+  width: max(0px, calc(var(--loop-end, 0%) - var(--loop-start, 0%)));
+  border-radius: inherit;
+  background: transparent;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.drum-app.has-loop .progress-wrap::before {
+  background: color-mix(in oklch, var(--cue), white 24%);
+  box-shadow: 0 0 14px var(--cue-soft);
+  opacity: 1;
+}
+
 .progress-bar {
+  position: relative;
+  z-index: 1;
   width: 0;
   height: 100%;
   border-radius: inherit;
@@ -2856,10 +2877,10 @@ canvas {
     border-radius: 14px;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: 1fr auto;
-    align-content: space-between;
+    grid-template-rows: auto auto;
+    align-content: center;
     align-items: stretch;
-    gap: var(--space-2);
+    gap: var(--space-3);
     background: color-mix(in oklch, var(--control), var(--surface-2) 18%);
     scroll-snap-align: none;
   }
@@ -2882,31 +2903,37 @@ canvas {
   }
 
   .control-stepper > div:first-child {
-    grid-template-columns: 24px minmax(0, 1fr);
-    column-gap: var(--space-1);
+    display: grid;
+    grid-template-columns: 26px auto;
+    grid-template-rows: auto;
+    column-gap: var(--space-2);
     align-items: center;
+    justify-content: center;
     justify-items: start;
     min-width: 0;
   }
 
   .control-stepper span {
-    grid-template-columns: 24px minmax(0, 1fr);
-    gap: var(--space-1);
+    display: contents;
     font-size: 0;
-    letter-spacing: 0.02em;
   }
 
   .control-stepper span i {
-    width: 24px;
-    height: 24px;
+    grid-column: 1;
+    grid-row: 1;
+    width: 26px;
+    height: 26px;
+    color: var(--text);
   }
 
   .control-stepper strong {
     grid-column: 2;
+    grid-row: 1;
     margin-top: 0;
     max-width: 100%;
     overflow: hidden;
-    font-size: 1.02rem;
+    color: var(--text);
+    font-size: 1.16rem;
     line-height: 1.05;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -2914,7 +2941,8 @@ canvas {
 
   .control-stepper[data-setting="speed"] strong,
   .control-stepper[data-setting="hitWindow"] strong {
-    font-size: 1.02rem;
+    color: var(--text);
+    font-size: 1.16rem;
   }
 
   .stepper-actions {
@@ -2923,7 +2951,7 @@ canvas {
     grid-template-columns: repeat(2, 40px);
     gap: var(--space-2);
     padding: 0;
-    justify-self: start;
+    justify-self: center;
     background: color-mix(in oklch, var(--surface-3), transparent 10%);
   }
 
@@ -3010,7 +3038,11 @@ canvas {
   }
 
   .loop-panel {
-    display: block;
+    display: grid;
+    grid-template-rows: auto 40px;
+    gap: var(--space-2);
+    align-content: center;
+    justify-items: center;
     overflow: hidden;
   }
 
@@ -3023,7 +3055,7 @@ canvas {
     row-gap: 0;
     align-content: center;
     align-items: center;
-    justify-content: start;
+    justify-content: center;
   }
 
   .loop-header span {
@@ -3036,19 +3068,44 @@ canvas {
     grid-row: 1;
     width: 24px;
     height: 24px;
+    color: var(--text);
   }
 
   .loop-header strong {
     grid-column: 2;
     grid-row: 1;
-    justify-self: start;
+    justify-self: center;
     min-width: 0;
     width: auto;
-    min-width: 64px;
+    height: auto;
+    padding: 0;
+    color: var(--text);
+    font-size: 1.16rem;
+    background: transparent;
+  }
+
+  .loop-card-controls {
+    display: grid;
+    grid-template-columns: 36px 30px 36px;
+    gap: 4px;
+    align-items: center;
+    justify-self: center;
+    width: auto;
     height: 40px;
-    padding: 0 var(--space-3);
-    font-size: 1.02rem;
-    background: color-mix(in oklch, var(--surface-3), transparent 10%);
+    padding: 0;
+  }
+
+  .loop-card-controls .step-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .loop-card-controls strong {
+    color: var(--text);
+    font-size: 0.82rem;
+    font-weight: 900;
+    line-height: 1;
+    text-align: center;
   }
 
   .loop-range {
@@ -3407,8 +3464,7 @@ canvas {
   }
 
   .performance-panel,
-  .switch-row,
-  .loop-panel {
+  .switch-row {
     display: none;
   }
 
@@ -3428,28 +3484,44 @@ canvas {
     border-top: 0;
   }
 
+  .control-stepper > div:first-child {
+    grid-template-columns: 22px auto;
+    column-gap: var(--space-1);
+  }
+
   .control-stepper span {
+    display: contents;
     font-size: 0;
     gap: 0;
-    grid-template-columns: 22px minmax(0, 1fr);
   }
 
   .control-stepper span i {
+    grid-column: 1;
+    grid-row: 1;
     width: 22px;
     height: 22px;
+    color: var(--text);
   }
 
   .control-stepper strong {
+    grid-column: 2;
+    grid-row: 1;
     margin-top: 0;
+    color: var(--text);
     font-size: 0.95rem;
   }
 
+  .control-stepper[data-setting="speed"] strong {
+    color: var(--text);
+  }
+
   .stepper-actions {
-    margin-left: auto;
+    margin-left: 0;
     width: 76px;
     height: 36px;
     grid-template-columns: repeat(2, 36px);
     gap: var(--space-1);
+    justify-self: center;
   }
 
   .preset-actions {
@@ -3468,6 +3540,51 @@ canvas {
   .preset-btn i {
     width: 13px;
     height: 13px;
+  }
+
+  .loop-panel {
+    display: grid;
+    min-height: 66px;
+    padding: var(--space-1) var(--space-2);
+    grid-template-rows: auto 34px;
+    gap: var(--space-1);
+    margin-top: 0;
+    border-top: 0;
+  }
+
+  .loop-header {
+    grid-template-columns: 22px auto;
+    column-gap: var(--space-1);
+  }
+
+  .loop-header i {
+    width: 22px;
+    height: 22px;
+    color: var(--text);
+  }
+
+  .loop-header strong {
+    color: var(--text);
+    font-size: 0.95rem;
+    background: transparent;
+  }
+
+  .loop-card-controls {
+    grid-template-columns: 32px 28px 32px;
+    gap: 3px;
+    height: 34px;
+    justify-self: center;
+  }
+
+  .loop-card-controls .step-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 0.95rem;
+  }
+
+  .loop-card-controls strong {
+    color: var(--text);
+    font-size: 0.76rem;
   }
 }
 

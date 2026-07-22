@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400..800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./styles.css?v=20260722-playscreen-mobile-2">
+    <link rel="stylesheet" href="./styles.css?v=20260722-loop-mobile-1">
   </head>
   <body>
     <div id="drum-app" class="drum-app">
@@ -101,8 +101,8 @@
               <div><span class="lane-full">RIDE</span><span class="lane-short">RD</span></div>
               <div><span class="lane-full">HIGH TOM</span><span class="lane-short">HT</span></div>
               <div><span class="lane-full">MID TOM</span><span class="lane-short">MT</span></div>
-              <div><span class="lane-full">SNARE</span><span class="lane-short">SN</span></div>
               <div><span class="lane-full">LOW TOM</span><span class="lane-short">LT</span></div>
+              <div><span class="lane-full">SNARE</span><span class="lane-short">SN</span></div>
               <div><span class="lane-full">KICK</span><span class="lane-short">K</span></div>
               <div><span class="lane-full">PEDAL HI-HAT</span><span class="lane-short">PH</span></div>
             </aside>
@@ -206,6 +206,11 @@
                 <span><i class="fa-solid fa-repeat" aria-hidden="true"></i>Loop</span>
                 <strong id="loopLabel">Off</strong>
               </button>
+              <div class="loop-card-controls" aria-label="Loop length">
+                <button class="step-btn" data-control="loopLength" data-delta="-1" type="button" aria-label="Loop length decrease">-</button>
+                <strong id="loopLengthLabel">4T</strong>
+                <button class="step-btn plus" data-control="loopLength" data-delta="1" type="button" aria-label="Loop length increase">+</button>
+              </div>
               <div id="loopRange" class="loop-range" aria-label="Loop range">
                 <div class="mini-stepper">
                   <span>Start</span>
@@ -361,6 +366,6 @@
     <script src="./imported-morning-blue-midi.js"></script>
     <script src="./imported-dussmann-midi.js"></script>
     <script src="./imported-bella-napoli-midi.js"></script>
-    <script src="./app.js?v=20260722-mobile-audio-3"></script>
+    <script src="./app.js?v=20260722-loop-mobile-1"></script>
   </body>
 </html>
