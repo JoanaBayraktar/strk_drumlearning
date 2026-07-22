@@ -132,6 +132,11 @@ const els = {
   menuClose: document.getElementById("menuCloseBtn"),
   menuBackdrop: document.getElementById("menuBackdrop"),
   appMenu: document.getElementById("appMenu"),
+  playSettings: document.getElementById("playSettingsBtn"),
+  playSettingsClose: document.getElementById("playSettingsCloseBtn"),
+  playSettingsBackdrop: document.getElementById("playSettingsBackdrop"),
+  playSettingsModal: document.getElementById("playSettingsModal"),
+  playSettingsLibrary: document.getElementById("playSettingsLibraryBtn"),
   menuSectionButtons: [...document.querySelectorAll("[data-menu-section]")],
   play: document.getElementById("playBtn"),
   restart: document.getElementById("restartBtn"),
@@ -189,20 +194,20 @@ const ctx = els.canvas.getContext("2d");
 function chartColors() {
   const light = document.documentElement.dataset.theme === "light";
   return {
-    outline: light ? "#17231f" : "#050708",
-    shadow: light ? "rgba(24,35,31,0.26)" : "rgba(0,0,0,0.64)",
-    shine: light ? "rgba(255,255,255,0.52)" : "rgba(255,255,255,0.36)",
-    shineSoft: light ? "rgba(255,255,255,0.32)" : "rgba(255,255,255,0.18)",
-    chartA: light ? "rgba(255,255,255,0.76)" : "rgba(255,255,255,0.06)",
-    chartB: light ? "rgba(223,248,90,0.08)" : "rgba(255,255,255,0.034)",
-    chartC: light ? "rgba(0,180,160,0.045)" : "rgba(128,220,199,0.026)",
+    outline: light ? "#091411" : "#050708",
+    shadow: light ? "rgba(9,20,17,0.32)" : "rgba(0,0,0,0.64)",
+    shine: light ? "rgba(255,255,255,0.68)" : "rgba(255,255,255,0.36)",
+    shineSoft: light ? "rgba(255,255,255,0.38)" : "rgba(255,255,255,0.18)",
+    chartA: light ? "rgba(255,255,255,0.90)" : "rgba(255,255,255,0.06)",
+    chartB: light ? "rgba(196,230,42,0.14)" : "rgba(255,255,255,0.034)",
+    chartC: light ? "rgba(0,165,150,0.075)" : "rgba(128,220,199,0.026)",
     stripe: light ? "rgba(12,35,30,0.035)" : "rgba(255,255,255,0.034)",
     gridMajor: light ? "rgba(31,56,50,0.30)" : "rgba(227,236,231,0.40)",
     gridMinor: light ? "rgba(31,56,50,0.14)" : "rgba(227,236,231,0.19)",
     gridFine: light ? "rgba(31,56,50,0.07)" : "rgba(227,236,231,0.075)",
     labelBg: light ? "rgba(246,252,241,0.92)" : "rgba(5,7,8,0.86)",
     labelText: light ? "#16231f" : "#dff85a",
-    cue: "#dff85a",
+    cue: light ? "#a8ef00" : "#dff85a",
     early: "#00d6bd",
     late: "#ffb000",
     loopFill: light ? "rgba(126,179,34,0.10)" : "rgba(223,248,90,0.065)",
@@ -488,6 +493,7 @@ function openStartScreen() {
   state.pausedAt = currentTime();
   state.playing = false;
   state.starting = false;
+  setPlaySettingsOpen(false);
   hideCompletion();
   els.play.classList.remove("is-playing");
   els.app.classList.remove("is-playing", "is-starting");
@@ -516,6 +522,13 @@ function setMenuOpen(open) {
   els.appMenu?.setAttribute("aria-hidden", String(!open));
   if (els.menuBackdrop) els.menuBackdrop.hidden = !open;
   if (open) renderSongEditor();
+}
+
+function setPlaySettingsOpen(open) {
+  els.app.classList.toggle("play-settings-is-open", open);
+  els.playSettings?.setAttribute("aria-expanded", String(open));
+  els.playSettingsModal?.setAttribute("aria-hidden", String(!open));
+  if (els.playSettingsBackdrop) els.playSettingsBackdrop.hidden = !open;
 }
 
 function focusMenuSection(sectionId) {
@@ -1395,12 +1408,13 @@ function chartMetrics() {
   const width = els.canvas.clientWidth;
   const height = els.canvas.clientHeight;
   const laneAreaHeight = height - (window.matchMedia("(max-width: 860px)").matches ? 132 : 60);
+  const isMobile = window.matchMedia("(max-width: 760px)").matches;
   return {
     width,
     height,
     laneAreaHeight,
     laneHeight: laneAreaHeight / lanes.length,
-    hitX: width * 0.38,
+    hitX: width * (isMobile ? 0.26 : 0.38),
     pxPerMs: 0.18 * state.zoom
   };
 }
@@ -1412,7 +1426,8 @@ function markerScale(laneHeight) {
 }
 
 function markerSizeForChart(pxPerMs, laneHeight) {
-  const base = 46 * markerScale(laneHeight);
+  const compactViewport = window.matchMedia("(max-width: 760px)").matches;
+  const base = (compactViewport ? 40 : 46) * markerScale(laneHeight);
   let nearest = Infinity;
 
   for (let i = 0; i < state.events.length; i++) {
@@ -1426,17 +1441,18 @@ function markerSizeForChart(pxPerMs, laneHeight) {
   }
 
   if (nearest === Infinity) return base;
-  return Math.max(28, Math.min(base, nearest * 0.72));
+  return Math.max(compactViewport ? 24 : 28, Math.min(base, nearest * 0.72));
 }
 
 function drawNotePad(x, y, lane, laneId, missed, size, ghost = false, variant = "") {
   const colors = chartColors();
+  const light = document.documentElement.dataset.theme === "light";
   const alpha = ghost ? 0.24 : missed ? 0.2 : 1;
   const scale = size / 46;
   const half = 23 * scale;
-  const radius = 16 * scale;
-  const outline = Math.max(4, 5 * scale);
-  const innerStroke = Math.max(1.4, 2 * scale);
+  const radius = 14 * scale;
+  const outline = Math.max(light ? 4.6 : 4, (light ? 5.8 : 5) * scale);
+  const innerStroke = Math.max(light ? 1.8 : 1.4, (light ? 2.4 : 2) * scale);
   ctx.save();
   ctx.globalAlpha = alpha;
   if (ghost) ctx.filter = "saturate(0.62)";
@@ -1789,6 +1805,10 @@ function init() {
   els.menu.addEventListener("click", () => setMenuOpen(true));
   els.menuClose.addEventListener("click", () => setMenuOpen(false));
   els.menuBackdrop.addEventListener("click", () => setMenuOpen(false));
+  els.playSettings.addEventListener("click", () => setPlaySettingsOpen(true));
+  els.playSettingsClose.addEventListener("click", () => setPlaySettingsOpen(false));
+  els.playSettingsBackdrop.addEventListener("click", () => setPlaySettingsOpen(false));
+  els.playSettingsLibrary.addEventListener("click", openStartScreen);
   for (const button of els.menuSectionButtons) {
     button.addEventListener("click", () => focusMenuSection(button.dataset.menuSection));
   }
