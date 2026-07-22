@@ -1609,6 +1609,56 @@ function drawNotePad(x, y, lane, laneId, missed, size, ghost = false, variant = 
     ctx.strokeStyle = ghost ? colors.shineSoft : colors.shine;
     ctx.lineWidth = Math.max(1.2, 2 * scale);
     ctx.stroke();
+  } else if (laneId === "hihat") {
+    const outer = 27 * scale;
+    const inner = 21 * scale;
+    ctx.beginPath();
+    ctx.arc(x, y, outer, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = colors.outline;
+    ctx.lineWidth = outline;
+    ctx.stroke();
+
+    ctx.shadowColor = lane.color;
+    ctx.shadowBlur = missed || ghost ? 0 : 5 * scale;
+    ctx.fillStyle = lane.color;
+    ctx.beginPath();
+    ctx.arc(x, y, inner, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = colors.outline;
+    ctx.lineWidth = innerStroke;
+    ctx.stroke();
+
+    ctx.fillStyle = ghost ? colors.shineSoft : colors.shine;
+    ctx.beginPath();
+    ctx.arc(x - 8 * scale, y - 9 * scale, 6 * scale, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (laneId === "ride") {
+    const w = 58 * scale;
+    const h = 38 * scale;
+    ctx.beginPath();
+    ctx.roundRect(x - (w + 8 * scale) / 2, y - (h + 8 * scale) / 2, w + 8 * scale, h + 8 * scale, 999 * scale);
+    ctx.fill();
+    ctx.strokeStyle = colors.outline;
+    ctx.lineWidth = outline;
+    ctx.stroke();
+
+    ctx.shadowColor = lane.color;
+    ctx.shadowBlur = missed || ghost ? 0 : 5 * scale;
+    ctx.fillStyle = lane.color;
+    ctx.beginPath();
+    ctx.roundRect(x - w / 2, y - h / 2, w, h, 999 * scale);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = colors.outline;
+    ctx.lineWidth = innerStroke;
+    ctx.stroke();
+
+    ctx.fillStyle = ghost ? colors.shineSoft : colors.shine;
+    ctx.beginPath();
+    ctx.arc(x - 16 * scale, y - 10 * scale, 6 * scale, 0, Math.PI * 2);
+    ctx.fill();
   } else if (laneId === "kick" || laneId === "pedalHat") {
     const w = 54 * scale;
     const h = 34 * scale;
