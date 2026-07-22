@@ -12,6 +12,9 @@ const lanes = [
 
 const importedTracks = Array.isArray(window.importedTracks) ? window.importedTracks : [];
 const storedTheme = window.localStorage.getItem("strk-theme");
+const savedSongEdits = readStoredJson("strk-song-edits", {});
+let songEdits = savedSongEdits && typeof savedSongEdits === "object" && !Array.isArray(savedSongEdits) ? savedSongEdits : {};
+let songOrder = readStoredJson("strk-song-order", importedTracks.map((track) => track.id));
 
 const accuracyPresets = {
   easy: { label: "Easy", window: 140 },
@@ -20,6 +23,16 @@ const accuracyPresets = {
 };
 
 const tracks = importedTracks;
+if (!Array.isArray(songOrder)) songOrder = importedTracks.map((track) => track.id);
+
+function readStoredJson(key, fallback) {
+  try {
+    const stored = window.localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : fallback;
+  } catch (error) {
+    return fallback;
+  }
+}
 
 const sampleManifest = {
   kick: { url: "./assets/samples/kick-acoustic02.wav" },
@@ -68,6 +81,7 @@ const state = {
   selectedTrackId: importedTracks[0]?.id || "",
   libraryQuery: "",
   libraryFilter: "all",
+  menuOpen: false,
   startedAt: 0,
   pausedAt: 0,
   playing: false,
@@ -114,6 +128,11 @@ const els = {
   seekBack: document.getElementById("seekBackBtn"),
   seekForward: document.getElementById("seekForwardBtn"),
   library: document.getElementById("libraryBtn"),
+  menu: document.getElementById("menuBtn"),
+  menuClose: document.getElementById("menuCloseBtn"),
+  menuBackdrop: document.getElementById("menuBackdrop"),
+  appMenu: document.getElementById("appMenu"),
+  menuSectionButtons: [...document.querySelectorAll("[data-menu-section]")],
   play: document.getElementById("playBtn"),
   restart: document.getElementById("restartBtn"),
   mute: document.getElementById("muteBtn"),
@@ -154,6 +173,8 @@ const els = {
   songSearch: document.getElementById("songSearch"),
   libraryTabs: [...document.querySelectorAll(".library-tab")],
   songList: document.getElementById("songList"),
+  songEditorList: document.getElementById("songEditorList"),
+  resetSongEdits: document.getElementById("resetSongEditsBtn"),
   stepButtons: [...document.querySelectorAll(".step-btn")],
   progress: document.getElementById("progressBar"),
   score: document.getElementById("score"),
@@ -480,12 +501,32 @@ function applyTheme(theme) {
   const isLight = nextTheme === "light";
   els.themeToggle.setAttribute("aria-pressed", String(isLight));
   els.themeToggle.setAttribute("aria-label", isLight ? "Dark mode einschalten" : "Light mode einschalten");
-  els.themeToggle.querySelector("span").textContent = isLight ? "Light" : "Dark";
+  els.themeToggle.querySelector("span").textContent = isLight ? "Light Mode" : "Dark Mode";
   if (state.track) draw();
 }
 
 function toggleTheme() {
   applyTheme(document.documentElement.dataset.theme === "light" ? "dark" : "light");
+}
+
+function setMenuOpen(open) {
+  state.menuOpen = open;
+  els.app.classList.toggle("menu-is-open", open);
+  els.menu?.setAttribute("aria-expanded", String(open));
+  els.appMenu?.setAttribute("aria-hidden", String(!open));
+  if (els.menuBackdrop) els.menuBackdrop.hidden = !open;
+  if (open) renderSongEditor();
+}
+
+function focusMenuSection(sectionId) {
+  const section = document.getElementById(sectionId);
+  if (!section) return;
+  section.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+}
+
+function updateHeaderScrollState() {
+  const scrolled = (els.startScreen?.scrollTop || 0) > 14;
+  els.app.classList.toggle("has-library-scroll", scrolled);
 }
 
 function startPractice(trackId) {
@@ -531,14 +572,97 @@ function trackSourceFilter(track) {
 }
 
 function trackDisplayParts(track) {
+  const edit = songEdits[track.id] || {};
   const [title, ...rest] = track.name.split(" - ");
   const subtitle = rest.length ? rest.join(" - ") : trackSource(track);
-  return { title: title.trim(), subtitle: subtitle.trim() };
+  return {
+    title: (edit.title || title).trim(),
+    subtitle: (edit.artist || subtitle).trim(),
+    image: edit.image || "",
+    spotifyUrl: edit.spotifyUrl || ""
+  };
+}
+
+function orderedTracks() {
+  const known = new Set(tracks.map((track) => track.id));
+  const ordered = songOrder
+    .filter((id) => known.has(id))
+    .map((id) => tracks.find((track) => track.id === id))
+    .filter(Boolean);
+  const missing = tracks.filter((track) => !songOrder.includes(track.id));
+  return [...ordered, ...missing];
+}
+
+function persistSongSettings() {
+  window.localStorage.setItem("strk-song-edits", JSON.stringify(songEdits));
+  window.localStorage.setItem("strk-song-order", JSON.stringify(songOrder));
+}
+
+function updateSongEdit(trackId, patch) {
+  const current = songEdits[trackId] || {};
+  songEdits = { ...songEdits, [trackId]: { ...current, ...patch } };
+  persistSongSettings();
+  renderSongCards();
+  renderSongEditor();
+  updateSelectedSongPanel();
+}
+
+function moveSong(trackId, delta) {
+  const order = orderedTracks().map((track) => track.id);
+  const index = order.indexOf(trackId);
+  const nextIndex = Math.min(order.length - 1, Math.max(0, index + delta));
+  if (index < 0 || nextIndex === index) return;
+  const [item] = order.splice(index, 1);
+  order.splice(nextIndex, 0, item);
+  songOrder = order;
+  persistSongSettings();
+  renderSongCards();
+  renderSongEditor();
+}
+
+function parseSpotifyTitle(value, fallback) {
+  const cleaned = String(value || "").replace(/\s*\|\s*Spotify\s*$/i, "").trim();
+  const splitters = [" - ", " – ", " — "];
+  for (const splitter of splitters) {
+    if (cleaned.includes(splitter)) {
+      const [artist, ...titleParts] = cleaned.split(splitter);
+      return { artist: artist.trim(), title: titleParts.join(splitter).trim() };
+    }
+  }
+  return { ...fallback, title: cleaned || fallback.title };
+}
+
+async function importSpotifyMeta(trackId) {
+  const input = els.songEditorList?.querySelector(`[data-spotify-input="${trackId}"]`);
+  const status = els.songEditorList?.querySelector(`[data-spotify-status="${trackId}"]`);
+  const url = input?.value.trim();
+  if (!url) return;
+  if (status) status.textContent = "Spotify wird gelesen...";
+  try {
+    const response = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`);
+    if (!response.ok) throw new Error("Spotify konnte nicht gelesen werden.");
+    const data = await response.json();
+    const track = tracks.find((item) => item.id === trackId);
+    const display = trackDisplayParts(track);
+    const parsed = parseSpotifyTitle(data.title, { title: display.title, artist: display.subtitle });
+    updateSongEdit(trackId, {
+      spotifyUrl: url,
+      title: parsed.title,
+      artist: parsed.artist,
+      image: data.thumbnail_url || display.image || ""
+    });
+    const nextStatus = els.songEditorList?.querySelector(`[data-spotify-status="${trackId}"]`);
+    if (nextStatus) nextStatus.textContent = "Spotify-Daten übernommen.";
+  } catch (error) {
+    updateSongEdit(trackId, { spotifyUrl: url });
+    const nextStatus = els.songEditorList?.querySelector(`[data-spotify-status="${trackId}"]`);
+    if (nextStatus) nextStatus.textContent = "Link gespeichert. Titel und Interpret kannst du manuell setzen.";
+  }
 }
 
 function visibleLibraryTracks() {
   const query = state.libraryQuery.trim().toLowerCase();
-  return tracks.filter((track) => {
+  return orderedTracks().filter((track) => {
     const matchesFilter = state.libraryFilter === "all" || trackSourceFilter(track) === state.libraryFilter;
     const display = trackDisplayParts(track);
     const matchesQuery = !query || `${track.name} ${display.title} ${display.subtitle}`.toLowerCase().includes(query);
@@ -586,7 +710,7 @@ function renderSongCards() {
     button.dataset.trackId = track.id;
     button.setAttribute("aria-pressed", String(track.id === state.selectedTrackId));
     button.innerHTML = `
-      <span class="song-icon"><i class="fa-solid fa-music" aria-hidden="true"></i></span>
+      <span class="song-icon"></span>
       <span class="song-main">
         <span class="song-title"></span>
         <span class="song-line">
@@ -595,12 +719,73 @@ function renderSongCards() {
         </span>
       </span>
     `;
+    const icon = button.querySelector(".song-icon");
+    if (display.image) {
+      const image = document.createElement("img");
+      image.src = display.image;
+      image.alt = "";
+      image.loading = "lazy";
+      icon.appendChild(image);
+    } else {
+      icon.innerHTML = `<i class="fa-solid fa-music" aria-hidden="true"></i>`;
+    }
     button.querySelector(".song-title").textContent = display.title;
     button.querySelector(".song-artist").textContent = display.subtitle;
     button.querySelector(".song-inline-meta").textContent = `${meta.bpm} / ${meta.duration} / ${meta.notes}`;
     button.addEventListener("click", () => selectLibraryTrack(track.id));
     els.songList.appendChild(button);
   }
+}
+
+function renderSongEditor() {
+  if (!els.songEditorList) return;
+  els.songEditorList.replaceChildren();
+  orderedTracks().forEach((track, index, list) => {
+    const display = trackDisplayParts(track);
+    const item = document.createElement("article");
+    item.className = "song-editor-item";
+    item.innerHTML = `
+      <div class="editor-art"></div>
+      <div class="editor-fields">
+        <label>
+          <span>Titel</span>
+          <input data-edit-field="title" data-track-id="${track.id}" type="text">
+        </label>
+        <label>
+          <span>Interpret</span>
+          <input data-edit-field="artist" data-track-id="${track.id}" type="text">
+        </label>
+        <label class="spotify-field">
+          <span>Spotify Link</span>
+          <input data-spotify-input="${track.id}" type="url" inputmode="url" placeholder="https://open.spotify.com/track/...">
+        </label>
+        <small data-spotify-status="${track.id}"></small>
+      </div>
+      <div class="editor-actions">
+        <button class="icon-btn" data-move-song="${track.id}" data-delta="-1" type="button" aria-label="Nach oben" ${index === 0 ? "disabled" : ""}>
+          <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+        </button>
+        <button class="icon-btn" data-move-song="${track.id}" data-delta="1" type="button" aria-label="Nach unten" ${index === list.length - 1 ? "disabled" : ""}>
+          <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+        </button>
+        <button class="text-btn" data-spotify-import="${track.id}" type="button">Spotify übernehmen</button>
+      </div>
+    `;
+    const art = item.querySelector(".editor-art");
+    if (display.image) {
+      const image = document.createElement("img");
+      image.src = display.image;
+      image.alt = "";
+      image.loading = "lazy";
+      art.appendChild(image);
+    } else {
+      art.innerHTML = `<i class="fa-solid fa-music" aria-hidden="true"></i>`;
+    }
+    item.querySelector('[data-edit-field="title"]').value = display.title;
+    item.querySelector('[data-edit-field="artist"]').value = display.subtitle;
+    item.querySelector(`[data-spotify-input="${track.id}"]`).value = display.spotifyUrl;
+    els.songEditorList.appendChild(item);
+  });
 }
 
 function setSpeed(speed) {
@@ -1599,6 +1784,12 @@ function init() {
   document.addEventListener("touchstart", ensureAudio, { once: true, passive: true });
   document.addEventListener("keydown", ensureAudio, { once: true });
   els.library.addEventListener("click", openStartScreen);
+  els.menu.addEventListener("click", () => setMenuOpen(true));
+  els.menuClose.addEventListener("click", () => setMenuOpen(false));
+  els.menuBackdrop.addEventListener("click", () => setMenuOpen(false));
+  for (const button of els.menuSectionButtons) {
+    button.addEventListener("click", () => focusMenuSection(button.dataset.menuSection));
+  }
   els.play.addEventListener("click", togglePlay);
   els.selectedSongPlay.addEventListener("click", () => startPractice(state.selectedTrackId));
   els.themeToggle.addEventListener("click", toggleTheme);
@@ -1615,6 +1806,34 @@ function init() {
       renderSongCards();
     });
   }
+  els.songEditorList.addEventListener("input", (event) => {
+    const input = event.target.closest("[data-edit-field]");
+    if (!input) return;
+    const current = songEdits[input.dataset.trackId] || {};
+    songEdits = { ...songEdits, [input.dataset.trackId]: { ...current, [input.dataset.editField]: input.value } };
+    persistSongSettings();
+    renderSongCards();
+    updateSelectedSongPanel();
+  });
+  els.songEditorList.addEventListener("click", (event) => {
+    const moveButton = event.target.closest("[data-move-song]");
+    if (moveButton) {
+      moveSong(moveButton.dataset.moveSong, Number(moveButton.dataset.delta));
+      return;
+    }
+    const spotifyButton = event.target.closest("[data-spotify-import]");
+    if (spotifyButton) {
+      importSpotifyMeta(spotifyButton.dataset.spotifyImport);
+    }
+  });
+  els.resetSongEdits.addEventListener("click", () => {
+    songEdits = {};
+    songOrder = tracks.map((track) => track.id);
+    persistSongSettings();
+    renderSongCards();
+    renderSongEditor();
+    updateSelectedSongPanel();
+  });
   els.restart.addEventListener("click", restart);
   els.completionReplay.addEventListener("click", replayReady);
   els.completionLibrary.addEventListener("click", openStartScreen);
@@ -1695,8 +1914,13 @@ function init() {
   els.canvas.addEventListener("pointercancel", () => {
     state.seekingWithPointer = false;
   });
+  els.startScreen.addEventListener("scroll", updateHeaderScrollState, { passive: true });
 
   window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && state.menuOpen) {
+      setMenuOpen(false);
+      return;
+    }
     if (event.repeat) return;
     if (event.code === "Space") event.preventDefault();
     const key = event.key.toLowerCase();
@@ -1726,6 +1950,8 @@ function init() {
   updateMidiStatus();
   updateSelectedSongPanel();
   renderSongCards();
+  renderSongEditor();
+  updateHeaderScrollState();
   resizeCanvas();
   tick();
 }

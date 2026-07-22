@@ -21,6 +21,9 @@
           <button id="libraryBtn" class="icon-btn library-btn" type="button" aria-label="Open library" title="Library">
             <i class="fa-solid fa-book" aria-hidden="true"></i>
           </button>
+          <button id="menuBtn" class="icon-btn menu-btn" type="button" aria-label="Menü öffnen" aria-expanded="false" aria-controls="appMenu">
+            <i class="fa-solid fa-bars" aria-hidden="true"></i>
+          </button>
         </div>
 
         <div class="transport" aria-label="Transport controls">
@@ -35,15 +38,11 @@
             <i class="fa-solid fa-volume icon-volume" aria-hidden="true"></i>
             <i class="fa-solid fa-volume-xmark icon-muted" aria-hidden="true"></i>
           </button>
-          <button id="midiBtn" class="icon-btn midi-btn" type="button" aria-label="MIDI verbinden" title="MIDI verbinden">
-            <i class="fa-solid fa-drum" aria-hidden="true"></i>
-          </button>
         </div>
 
         <div class="player-meta" aria-label="Current song">
           <strong id="currentSongTitle">-</strong>
           <span id="currentSongBpm">- BPM</span>
-          <small id="midiStatus">MIDI aus</small>
         </div>
       </header>
 
@@ -52,19 +51,9 @@
           <div class="start-intro">
             <div class="start-kicker-row">
               <div class="section-label">STRK Library</div>
-              <button id="themeToggle" class="theme-toggle" type="button" aria-label="Light mode einschalten" aria-pressed="false">
-                <i class="fa-solid fa-sun theme-light" aria-hidden="true"></i>
-                <i class="fa-solid fa-moon theme-dark" aria-hidden="true"></i>
-                <span>Light</span>
-              </button>
             </div>
             <h2 id="startTitle">Song auswählen</h2>
             <p>Wähle einen Drum-Chart aus. Der Player öffnet sich erst, wenn du den ausgewählten Song startest.</p>
-            <div class="start-readout" aria-hidden="true">
-              <span>Q W E</span>
-              <span>A S D F</span>
-              <span>SPACE C</span>
-            </div>
           </div>
           <div class="start-selection" aria-label="Selected chart">
             <span>Bereit</span>
@@ -90,6 +79,11 @@
           </div>
           <div id="songList" class="song-list"></div>
         </section>
+        <footer class="app-footer">
+          <span>Made with love and Coffee von Joana Bayraktar, 2026</span>
+          <a href="https://github.com/JoanaBayraktar/strk_drumlearning" target="_blank" rel="noreferrer">GitHub</a>
+          <a href="https://www.tiktok.com/@joanabayraktar" target="_blank" rel="noreferrer">TikTok</a>
+        </footer>
       </main>
 
       <main class="workspace">
@@ -272,6 +266,65 @@
           </div>
         </aside>
       </main>
+
+      <div id="menuBackdrop" class="menu-backdrop" hidden></div>
+      <aside id="appMenu" class="app-menu" aria-hidden="true" aria-label="STRK Menü">
+        <div class="app-menu-head">
+          <div>
+            <span>STRK</span>
+            <strong>Menü</strong>
+          </div>
+          <button id="menuCloseBtn" class="icon-btn" type="button" aria-label="Menü schließen">
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <nav class="menu-actions" aria-label="Schnellaktionen">
+          <button id="themeToggle" class="menu-action" type="button" aria-label="Light mode einschalten" aria-pressed="false">
+            <i class="fa-solid fa-sun theme-light" aria-hidden="true"></i>
+            <i class="fa-solid fa-moon theme-dark" aria-hidden="true"></i>
+            <span>Light Mode</span>
+          </button>
+          <button class="menu-action" type="button" data-menu-section="importSection">
+            <i class="fa-solid fa-file-import" aria-hidden="true"></i>
+            <span>Song importieren</span>
+          </button>
+          <button class="menu-action" type="button" data-menu-section="settingsSection">
+            <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+            <span>Einstellungen</span>
+          </button>
+          <button class="menu-action" type="button" data-menu-section="songEditSection">
+            <i class="fa-solid fa-list-ul" aria-hidden="true"></i>
+            <span>Songliste bearbeiten</span>
+          </button>
+        </nav>
+
+        <section id="importSection" class="menu-section">
+          <h3>Neuer Song</h3>
+          <label class="menu-field">
+            <span>MIDI oder MusicXML</span>
+            <input type="file" accept=".mid,.midi,.musicxml,.xml">
+          </label>
+          <p>Import ist vorbereitet. Der aktuelle Prototyp nutzt noch die fest eingebauten Demo-Charts.</p>
+        </section>
+
+        <section id="settingsSection" class="menu-section">
+          <h3>Einstellungen</h3>
+          <button id="midiBtn" class="midi-connect" type="button">
+            <i class="fa-solid fa-drum" aria-hidden="true"></i>
+            <span>MIDI-Instrument hinzufügen</span>
+          </button>
+          <small id="midiStatus">MIDI aus</small>
+        </section>
+
+        <section id="songEditSection" class="menu-section">
+          <div class="section-headline">
+            <h3>Songliste bearbeiten</h3>
+            <button id="resetSongEditsBtn" class="text-btn" type="button">Zurücksetzen</button>
+          </div>
+          <div id="songEditorList" class="song-editor-list"></div>
+        </section>
+      </aside>
     </div>
 
     <script src="./imported-one-way-midi.js"></script>
