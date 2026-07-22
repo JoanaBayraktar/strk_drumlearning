@@ -1,13 +1,13 @@
 const lanes = [
   { id: "crash", label: "CRASH", key: "q", color: "#dff85a", tone: 420 },
-  { id: "hihat", label: "HI-HATS", key: "w", color: "#00f0c8", tone: 760 },
-  { id: "ride", label: "RIDE", key: "e", color: "#19b7ff", tone: 620 },
-  { id: "highTom", label: "HIGH TOM", key: "a", color: "#ffb000", tone: 300 },
-  { id: "midTom", label: "MID TOM", key: "s", color: "#ff4d2e", tone: 250 },
-  { id: "lowTom", label: "LOW TOM", key: "f", color: "#a866ff", tone: 180 },
-  { id: "snare", label: "SNARE", key: "d", color: "#00a8ff", tone: 210 },
-  { id: "kick", label: "KICK", key: " ", color: "#38ff65", tone: 90 },
-  { id: "pedalHat", label: "PEDAL HI-HAT", key: "c", color: "#f0f4ff", tone: 520 }
+  { id: "hihat", label: "HI-HATS", key: "w", color: "#05a8aa", tone: 760 },
+  { id: "ride", label: "RIDE", key: "e", color: "#24b8ff", tone: 620 },
+  { id: "highTom", label: "HIGH TOM", key: "a", color: "#ffbe0b", tone: 300 },
+  { id: "midTom", label: "MID TOM", key: "s", color: "#dc602e", tone: 250 },
+  { id: "lowTom", label: "LOW TOM", key: "f", color: "#8f5cff", tone: 180 },
+  { id: "snare", label: "SNARE", key: "d", color: "#2f80ed", tone: 210 },
+  { id: "kick", label: "KICK", key: " ", color: "#32e875", tone: 90 },
+  { id: "pedalHat", label: "PEDAL HI-HAT", key: "c", color: "#eef45b", tone: 520 }
 ];
 
 const importedTracks = Array.isArray(window.importedTracks) ? window.importedTracks : [];
@@ -200,7 +200,10 @@ const ctx = els.canvas.getContext("2d");
 function chartColors() {
   const light = document.documentElement.dataset.theme === "light";
   return {
-    outline: light ? "rgba(6,32,26,0.74)" : "rgba(4,8,7,0.76)",
+    outline: light ? "rgba(5,28,23,0.58)" : "rgba(4,8,7,0.64)",
+    markerDepth: light ? "rgba(5,28,23,0.48)" : "rgba(0,0,0,0.56)",
+    markerEdge: light ? "rgba(5,28,23,0.18)" : "rgba(255,255,255,0.16)",
+    markerInset: light ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.13)",
     shadow: light ? "rgba(9,20,17,0.22)" : "rgba(0,0,0,0.42)",
     shine: light ? "rgba(255,255,255,0.68)" : "rgba(255,255,255,0.36)",
     shineSoft: light ? "rgba(255,255,255,0.38)" : "rgba(255,255,255,0.18)",
@@ -668,6 +671,9 @@ function startSongEdit(trackId) {
     artist: display.subtitle
   };
   renderSongEditor();
+  requestAnimationFrame(() => {
+    els.songEditorList?.querySelector(`[data-track-id="${trackId}"][data-edit-field="title"]`)?.focus();
+  });
 }
 
 function updateSongEditDraft(trackId, field, value) {
@@ -1504,7 +1510,7 @@ function finishSong(duration) {
   els.app.classList.add("is-finishing");
   updateStats();
   clearTimeout(state.finishTimer);
-  state.finishTimer = window.setTimeout(showCompletion, 520);
+  state.finishTimer = window.setTimeout(showCompletion, 760);
 }
 
 function resizeCanvas() {
@@ -1526,7 +1532,7 @@ function chartMetrics() {
     height,
     laneAreaHeight,
     laneHeight: laneAreaHeight / lanes.length,
-    hitX: width * (isMobile ? 0.26 : 0.38),
+    hitX: width * (isMobile ? 0.26 : 0.32),
     pxPerMs: 0.18 * state.zoom
   };
 }
@@ -1556,175 +1562,134 @@ function markerSizeForChart(pxPerMs, laneHeight) {
   return Math.max(compactViewport ? 24 : 28, Math.min(base, nearest * 0.72));
 }
 
+function hexToRgb(hex) {
+  const normalized = hex.replace("#", "");
+  const value = Number.parseInt(normalized.length === 3 ? normalized.split("").map((item) => item + item).join("") : normalized, 16);
+  return {
+    r: (value >> 16) & 255,
+    g: (value >> 8) & 255,
+    b: value & 255
+  };
+}
+
+function colorWithAlpha(hex, alpha) {
+  const { r, g, b } = hexToRgb(hex);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 function drawNotePad(x, y, lane, laneId, missed, size, ghost = false, variant = "") {
   const colors = chartColors();
   const light = document.documentElement.dataset.theme === "light";
-  const alpha = ghost ? 0.24 : missed ? 0.2 : 1;
+  const alpha = ghost ? 0.28 : missed ? 0.22 : 1;
   const scale = size / 46;
-  const half = 23 * scale;
-  const radius = 14 * scale;
-  const outlineGap = 5 * scale;
-  const outline = Math.max(light ? 2.6 : 2.4, (light ? 3.8 : 3.4) * scale);
-  const innerStroke = Math.max(light ? 0.9 : 0.8, (light ? 1.35 : 1.15) * scale);
-  ctx.save();
-  ctx.globalAlpha = alpha;
-  if (ghost) ctx.filter = "saturate(0.62)";
-  ctx.lineJoin = "round";
-  ctx.lineCap = "round";
-  ctx.shadowColor = colors.shadow;
-  ctx.shadowBlur = missed || ghost ? 0 : 8 * scale;
-  ctx.fillStyle = colors.outline;
+  const stroke = Math.max(1.3, 1.75 * scale);
+  const pressOffset = Math.max(2.8, 4.8 * scale);
+  const padShadow = missed || ghost ? 0 : 10 * scale;
+  const laneGlow = colorWithAlpha(lane.color, light ? 0.24 : 0.22);
 
-  if (laneId === "crash") {
+  const drawRaisedRect = (w, h, radius) => {
+    ctx.shadowColor = colors.shadow;
+    ctx.shadowBlur = padShadow;
+    ctx.shadowOffsetY = missed || ghost ? 0 : 3 * scale;
+    ctx.fillStyle = colors.markerDepth;
     ctx.beginPath();
-    ctx.moveTo(x, y - half - outlineGap);
-    ctx.lineTo(x + 31 * scale + outlineGap, y);
-    ctx.lineTo(x, y + half + outlineGap);
-    ctx.lineTo(x - 31 * scale - outlineGap, y);
-    ctx.closePath();
+    ctx.roundRect(x - w / 2, y - h / 2 + pressOffset, w, h, radius);
     ctx.fill();
-    ctx.strokeStyle = colors.outline;
-    ctx.lineWidth = outline;
+
+    ctx.shadowColor = laneGlow;
+    ctx.shadowBlur = missed || ghost ? 0 : 7 * scale;
+    ctx.shadowOffsetY = 0;
+    ctx.fillStyle = lane.color;
+    ctx.beginPath();
+    ctx.roundRect(x - w / 2, y - h / 2, w, h, radius);
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.strokeStyle = colors.markerEdge;
+    ctx.lineWidth = stroke;
     ctx.stroke();
 
-    ctx.shadowColor = lane.color;
-    ctx.shadowBlur = missed || ghost ? 0 : 5 * scale;
+  };
+
+  const drawRaisedCircle = (radius) => {
+    ctx.shadowColor = colors.shadow;
+    ctx.shadowBlur = padShadow;
+    ctx.shadowOffsetY = missed || ghost ? 0 : 3 * scale;
+    ctx.fillStyle = colors.markerDepth;
+    ctx.beginPath();
+    ctx.arc(x, y + pressOffset, radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.shadowColor = laneGlow;
+    ctx.shadowBlur = missed || ghost ? 0 : 7 * scale;
+    ctx.shadowOffsetY = 0;
+    ctx.fillStyle = lane.color;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = colors.markerEdge;
+    ctx.lineWidth = stroke;
+    ctx.stroke();
+  };
+
+  const drawRaisedDiamond = (wide, half) => {
+    ctx.shadowColor = colors.shadow;
+    ctx.shadowBlur = padShadow;
+    ctx.shadowOffsetY = missed || ghost ? 0 : 3 * scale;
+    ctx.fillStyle = colors.markerDepth;
+    ctx.beginPath();
+    ctx.moveTo(x, y - half + pressOffset);
+    ctx.lineTo(x + wide, y + pressOffset);
+    ctx.lineTo(x, y + half + pressOffset);
+    ctx.lineTo(x - wide, y + pressOffset);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.shadowColor = laneGlow;
+    ctx.shadowBlur = missed || ghost ? 0 : 7 * scale;
+    ctx.shadowOffsetY = 0;
     ctx.fillStyle = lane.color;
     ctx.beginPath();
     ctx.moveTo(x, y - half);
-    ctx.lineTo(x + 31 * scale, y);
+    ctx.lineTo(x + wide, y);
     ctx.lineTo(x, y + half);
-    ctx.lineTo(x - 31 * scale, y);
+    ctx.lineTo(x - wide, y);
     ctx.closePath();
     ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = colors.outline;
-    ctx.lineWidth = innerStroke;
-    ctx.stroke();
 
-    ctx.beginPath();
-    ctx.moveTo(x - 15 * scale, y - 5 * scale);
-    ctx.lineTo(x, y - 15 * scale);
-    ctx.lineTo(x + 15 * scale, y - 5 * scale);
-    ctx.strokeStyle = ghost ? colors.shineSoft : colors.shine;
-    ctx.lineWidth = Math.max(1.2, 2 * scale);
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = colors.markerEdge;
+    ctx.lineWidth = stroke;
     ctx.stroke();
+  };
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  if (ghost) ctx.filter = "saturate(0.64)";
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+
+  if (laneId === "crash") {
+    drawRaisedDiamond(31 * scale, 22 * scale);
   } else if (laneId === "hihat") {
-    const inner = 22 * scale;
-    const outer = inner + outlineGap;
-    ctx.beginPath();
-    ctx.arc(x, y, outer, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = colors.outline;
-    ctx.lineWidth = outline;
-    ctx.stroke();
-
-    ctx.shadowColor = lane.color;
-    ctx.shadowBlur = missed || ghost ? 0 : 5 * scale;
-    ctx.fillStyle = lane.color;
-    ctx.beginPath();
-    ctx.arc(x, y, inner, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = colors.outline;
-    ctx.lineWidth = innerStroke;
-    ctx.stroke();
-
-    ctx.fillStyle = ghost ? colors.shineSoft : colors.shine;
-    ctx.beginPath();
-    ctx.arc(x - 8 * scale, y - 9 * scale, 6 * scale, 0, Math.PI * 2);
-    ctx.fill();
+    const open = variant === "open";
+    drawRaisedCircle(20 * scale);
+    if (open) {
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = light ? "rgba(246,252,241,0.88)" : "rgba(4,12,10,0.72)";
+      ctx.beginPath();
+      ctx.arc(x, y, 8 * scale, 0, Math.PI * 2);
+      ctx.fill();
+    }
   } else if (laneId === "ride") {
-    const w = 56 * scale;
-    const h = 36 * scale;
-    ctx.beginPath();
-    ctx.roundRect(x - (w + outlineGap * 2) / 2, y - (h + outlineGap * 2) / 2, w + outlineGap * 2, h + outlineGap * 2, 999 * scale);
-    ctx.fill();
-    ctx.strokeStyle = colors.outline;
-    ctx.lineWidth = outline;
-    ctx.stroke();
-
-    ctx.shadowColor = lane.color;
-    ctx.shadowBlur = missed || ghost ? 0 : 5 * scale;
-    ctx.fillStyle = lane.color;
-    ctx.beginPath();
-    ctx.roundRect(x - w / 2, y - h / 2, w, h, 999 * scale);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = colors.outline;
-    ctx.lineWidth = innerStroke;
-    ctx.stroke();
-
-    ctx.fillStyle = ghost ? colors.shineSoft : colors.shine;
-    ctx.beginPath();
-    ctx.arc(x - 16 * scale, y - 10 * scale, 6 * scale, 0, Math.PI * 2);
-    ctx.fill();
+    drawRaisedRect(58 * scale, 31 * scale, 999 * scale);
   } else if (laneId === "kick" || laneId === "pedalHat") {
-    const w = 54 * scale;
-    const h = 34 * scale;
-    ctx.beginPath();
-    ctx.roundRect(x - (w + outlineGap * 2) / 2, y - (h + outlineGap * 2) / 2, w + outlineGap * 2, h + outlineGap * 2, 12 * scale);
-    ctx.fill();
-    ctx.strokeStyle = colors.outline;
-    ctx.lineWidth = outline;
-    ctx.stroke();
-
-    ctx.shadowColor = lane.color;
-    ctx.shadowBlur = missed || ghost ? 0 : 5 * scale;
-    ctx.fillStyle = lane.color;
-    ctx.beginPath();
-    ctx.roundRect(x - w / 2, y - h / 2, w, h, 10 * scale);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = colors.outline;
-    ctx.lineWidth = innerStroke;
-    ctx.stroke();
-
-    ctx.fillStyle = ghost ? colors.shineSoft : colors.shine;
-    ctx.beginPath();
-    ctx.roundRect(x - 19 * scale, y - 11 * scale, 38 * scale, 6 * scale, 5 * scale);
-    ctx.fill();
+    drawRaisedRect(52 * scale, 31 * scale, 13 * scale);
   } else {
-    ctx.beginPath();
-    ctx.roundRect(x - half - outlineGap, y - half - outlineGap, half * 2 + outlineGap * 2, half * 2 + outlineGap * 2, radius + outlineGap);
-    ctx.fill();
-    ctx.strokeStyle = colors.outline;
-    ctx.lineWidth = outline;
-    ctx.stroke();
-
-    ctx.shadowColor = lane.color;
-    ctx.shadowBlur = missed || ghost ? 0 : 5 * scale;
-    ctx.fillStyle = lane.color;
-    ctx.beginPath();
-    ctx.roundRect(x - half, y - half, half * 2, half * 2, radius);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = colors.outline;
-    ctx.lineWidth = innerStroke;
-    ctx.stroke();
-
-    ctx.fillStyle = ghost ? colors.shineSoft : colors.shine;
-    ctx.beginPath();
-    ctx.arc(x - 8 * scale, y - 9 * scale, 7 * scale, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  if (variant === "open") {
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = ghost ? colors.shineSoft : colors.outline;
-    ctx.lineWidth = Math.max(2.2, 3 * scale);
-    ctx.beginPath();
-    ctx.arc(x, y, 30 * scale, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.strokeStyle = ghost ? colors.shineSoft : colors.shine;
-    ctx.lineWidth = Math.max(1.5, 2 * scale);
-    ctx.beginPath();
-    ctx.moveTo(x - 11 * scale, y - 11 * scale);
-    ctx.lineTo(x + 11 * scale, y + 11 * scale);
-    ctx.moveTo(x + 11 * scale, y - 11 * scale);
-    ctx.lineTo(x - 11 * scale, y + 11 * scale);
-    ctx.stroke();
+    drawRaisedRect(40 * scale, 40 * scale, 13 * scale);
   }
 
   ctx.restore();
