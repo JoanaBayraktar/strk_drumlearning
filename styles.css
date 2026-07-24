@@ -1958,23 +1958,24 @@ p {
 }
 
 .song-map {
-  min-height: 44px;
+  min-height: 52px;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: var(--space-3);
-  padding: 6px 8px 6px var(--space-3);
-  border-radius: var(--radius-2);
-  background: color-mix(in oklch, var(--control), transparent 18%);
-  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--border), transparent 22%);
+  gap: var(--space-4);
+  padding: 9px 10px 7px var(--space-3);
+  border-radius: 16px;
+  background:
+    linear-gradient(90deg, color-mix(in oklch, var(--surface), var(--cue) 8%), color-mix(in oklch, var(--surface), var(--accent-cyan) 4%));
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--border), transparent 35%);
 }
 
 .song-map-copy {
   display: grid;
   gap: 1px;
-  min-width: 76px;
+  min-width: 82px;
   color: var(--muted);
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0;
@@ -1987,17 +1988,31 @@ p {
 }
 
 .song-map-track {
+  position: relative;
   min-width: 0;
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(12px, 1fr);
-  align-items: end;
-  gap: 3px;
+  grid-auto-columns: minmax(7px, 1fr);
+  align-items: center;
+  gap: 1px;
   overflow-x: auto;
-  overflow-y: hidden;
-  padding: 4px 2px;
+  overflow-y: visible;
+  padding: 18px 6px 7px;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--control), transparent 28%);
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+}
+
+.song-map-track::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 15px;
+  height: 2px;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--text), transparent 86%);
 }
 
 .song-map-track::-webkit-scrollbar {
@@ -2006,25 +2021,29 @@ p {
 
 .song-map-bar {
   position: relative;
-  height: 28px;
-  min-width: 12px;
+  height: 22px;
+  min-width: 7px;
   border: 0;
-  border-radius: 999px;
-  background: color-mix(in oklch, var(--control), var(--text) 7%);
+  border-radius: 5px;
+  background: transparent;
   cursor: pointer;
-  overflow: hidden;
+  overflow: visible;
   transition: background 140ms ease, box-shadow 140ms ease, transform 140ms ease, opacity 140ms ease;
 }
 
 .song-map-bar::before {
   content: "";
   position: absolute;
-  inset-inline: 0;
-  bottom: 0;
+  left: 1px;
+  right: 1px;
+  bottom: 3px;
   height: calc(var(--bar-fill, 0.4) * 100%);
-  border-radius: inherit;
+  min-height: 4px;
+  max-height: 18px;
+  border-radius: 4px;
   background: color-mix(in oklch, var(--accent-cyan), white 12%);
-  opacity: 0.72;
+  opacity: 0.78;
+  transition: background 140ms ease, opacity 140ms ease, transform 140ms ease;
 }
 
 .song-map-bar.is-rest::before {
@@ -2044,54 +2063,59 @@ p {
 }
 
 .song-map-bar .bar-index {
-  position: relative;
-  z-index: 1;
+  position: absolute;
+  z-index: 2;
+  top: -10px;
+  left: 50%;
   display: block;
-  color: var(--text);
-  font-size: 0.46rem;
+  color: var(--muted);
+  font-size: 0.45rem;
   font-weight: 900;
-  line-height: 28px;
-  opacity: 0.54;
-  transform: rotate(-90deg);
+  line-height: 1;
+  opacity: 0.6;
+  transform: translateX(-50%);
 }
 
 .song-map-bar .section-label {
   position: absolute;
-  z-index: 2;
-  top: 2px;
+  z-index: 3;
+  top: -16px;
   left: 50%;
-  min-width: 12px;
-  height: 12px;
-  padding: 0 3px;
-  border-radius: 999px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 4px;
+  border-radius: 7px;
   display: grid;
   place-items: center;
-  background: var(--text);
-  color: var(--surface);
-  font-size: 0.42rem;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.46rem;
   font-weight: 900;
   line-height: 1;
   transform: translateX(-50%);
-  box-shadow: 0 1px 0 color-mix(in oklch, var(--shadow-hard), transparent 28%);
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--border), transparent 18%);
 }
 
 .song-map-bar:hover {
   transform: translateY(-1px);
-  box-shadow: 0 5px 12px color-mix(in oklch, var(--shadow), transparent 30%);
+}
+
+.song-map-bar:hover::before {
+  opacity: 1;
+  transform: scaleY(1.08);
 }
 
 .song-map-bar.is-section-start {
-  min-width: 20px;
-  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--text), transparent 52%);
+  min-width: 10px;
 }
 
 .song-map-bar.is-section-start::after {
   content: "";
   position: absolute;
-  top: 0;
-  bottom: 0;
+  top: -2px;
+  bottom: 1px;
   left: 0;
-  width: 3px;
+  width: 2px;
   border-radius: 999px;
   background: var(--warning);
 }
@@ -2113,22 +2137,23 @@ p {
 }
 
 .song-map-bar.is-looped {
-  background: color-mix(in oklch, var(--warning), transparent 48%);
-  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--warning), transparent 22%);
+  background: color-mix(in oklch, var(--warning), transparent 78%);
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--warning), transparent 54%);
 }
 
 .song-map-bar.is-current {
-  background: var(--text);
-  box-shadow: inset 0 0 0 2px var(--cue), 0 0 0 2px color-mix(in oklch, var(--cue), transparent 58%);
+  background: color-mix(in oklch, var(--cue), transparent 72%);
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--cue), transparent 42%);
 }
 
 .song-map-bar.is-current::before {
   background: var(--cue);
   opacity: 1;
+  min-height: 20px;
 }
 
 .song-map-bar.is-current .bar-index {
-  color: var(--ink-on-cue);
+  color: var(--text);
   opacity: 1;
 }
 
@@ -4011,10 +4036,10 @@ canvas {
   }
 
   .song-map {
-    min-height: 38px;
+    min-height: 45px;
     grid-template-columns: 54px minmax(0, 1fr);
     gap: var(--space-2);
-    padding: 5px 6px 5px var(--space-2);
+    padding: 7px 7px 6px var(--space-2);
     border-radius: 14px;
   }
 
@@ -4028,31 +4053,31 @@ canvas {
   }
 
   .song-map-track {
-    grid-auto-columns: minmax(10px, 1fr);
-    gap: 2px;
-    padding-block: 3px;
+    grid-auto-columns: minmax(6px, 1fr);
+    gap: 1px;
+    padding: 15px 5px 6px;
   }
 
   .song-map-bar {
-    height: 24px;
-    min-width: 10px;
+    height: 19px;
+    min-width: 6px;
   }
 
   .song-map-bar .bar-index {
-    font-size: 0.42rem;
-    line-height: 24px;
-  }
-
-  .song-map-bar .section-label {
-    top: 2px;
-    min-width: 11px;
-    height: 11px;
-    padding-inline: 2px;
+    top: -8px;
     font-size: 0.38rem;
   }
 
+  .song-map-bar .section-label {
+    top: -13px;
+    min-width: 12px;
+    height: 12px;
+    padding-inline: 3px;
+    font-size: 0.4rem;
+  }
+
   .song-map-bar.is-section-start {
-    min-width: 18px;
+    min-width: 8px;
   }
 
   .stage {

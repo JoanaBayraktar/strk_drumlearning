@@ -1189,7 +1189,8 @@ function detectSongSections(summaries, maxHits) {
     const previousSignature = songMapSignature(previous, maxHits);
     const hitDelta = Math.abs(current.hits - previous.hits) / Math.max(1, maxHits);
     const cymbalDelta = Math.abs(current.cymbals - previous.cymbals) / Math.max(1, maxHits);
-    const enoughDistance = current.bar - lastStart >= 4;
+    const phraseDistance = current.bar - lastStart;
+    const enoughDistance = phraseDistance >= 8;
 
     let score = 0;
     if (currentRole !== previousRole) score += 1.15;
@@ -1203,8 +1204,9 @@ function detectSongSections(summaries, maxHits) {
 
     const phraseBoundary = current.bar > 1 && (current.bar - 1) % 8 === 0;
     if (phraseBoundary && score >= 1.2) score += 0.45;
+    if (phraseDistance >= 16 && score >= 1.35) score += 0.35;
 
-    if (enoughDistance && score >= 2.1) {
+    if (enoughDistance && score >= 2.45) {
       let label;
       if (currentRole === "break") {
         label = "Break";
@@ -1244,8 +1246,8 @@ function renderSongMap() {
   const sectionByBar = new Map(state.songMapSections.map((section) => [section.bar, section]));
   const html = summaries.map((summary) => {
     const intensity = songMapIntensity(summary, maxHits);
-    const showLabel = summary.bar === 1 || summary.bar % 8 === 0;
     const section = sectionByBar.get(summary.bar);
+    const showLabel = !section && summary.bar % 8 === 0;
     const height = Math.max(0.28, Math.min(1, summary.hits / maxHits));
     const sectionTitle = section ? ` · neuer Part: ${section.label}` : "";
     const title = `Takt ${summary.bar} · ${summary.hits} Hits${sectionTitle}`;
