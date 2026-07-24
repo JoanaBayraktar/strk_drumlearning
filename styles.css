@@ -135,7 +135,7 @@ input {
   flex: 0 0 68px;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(160px, 0.7fr) minmax(180px, 1fr) auto;
+  grid-template-columns: minmax(140px, 0.7fr) auto auto minmax(180px, 0.9fr);
   align-items: center;
   gap: var(--space-4);
   padding: var(--space-2) var(--space-5);
@@ -277,6 +277,61 @@ p {
 
 .drum-app.is-playing .transport {
   grid-template-columns: 38px 50px 38px 38px;
+}
+
+.instrument-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--control);
+}
+
+.instrument-btn {
+  min-height: 34px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--type-xs);
+  font-weight: var(--weight-label);
+  transition: background 150ms ease, color 150ms ease, transform 150ms ease;
+}
+
+.instrument-btn i {
+  width: 14px;
+  height: 14px;
+  display: grid;
+  place-items: center;
+  color: currentColor;
+}
+
+.instrument-btn:hover,
+.instrument-btn:focus-visible {
+  background: var(--control-hover);
+  color: var(--text);
+}
+
+.instrument-btn.is-active {
+  background: var(--cue);
+  color: var(--ink-on-cue);
+}
+
+.drum-app:not(.is-playing) .topbar > .instrument-switch {
+  display: none;
+}
+
+.start-instrument-switch {
+  width: fit-content;
+  margin-top: var(--space-4);
 }
 
 .icon-btn {
@@ -2096,7 +2151,7 @@ p {
 .lane-labels {
   padding: 0 var(--space-4);
   display: grid;
-  grid-template-rows: repeat(9, 1fr);
+  grid-template-rows: repeat(var(--lane-count, 9), 1fr);
   align-items: center;
   background: var(--app);
   border-right: 1px solid var(--border);
@@ -2968,6 +3023,10 @@ canvas {
     max-width: none;
   }
 
+  .drum-app.is-playing .topbar > .instrument-switch {
+    display: none;
+  }
+
   .workspace {
     grid-template-columns: minmax(0, 1fr) 232px;
     overflow: hidden;
@@ -3185,6 +3244,10 @@ canvas {
     padding: 2px var(--space-1);
     border-radius: 17px;
     background: var(--control);
+  }
+
+  .drum-app.is-playing .topbar > .instrument-switch {
+    display: none;
   }
 
   .drum-app.is-playing .transport {

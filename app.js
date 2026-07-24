@@ -1,17 +1,34 @@
-const lanes = [
-  { id: "crash", label: "CRASH", key: "q", color: "#dff85a", tone: 420 },
-  { id: "hihat", label: "HI-HATS", key: "w", color: "#05a8aa", tone: 760 },
-  { id: "ride", label: "RIDE", key: "e", color: "#24b8ff", tone: 620 },
-  { id: "highTom", label: "HIGH TOM", key: "a", color: "#ffbe0b", tone: 300 },
-  { id: "midTom", label: "MID TOM", key: "s", color: "#dc602e", tone: 250 },
-  { id: "lowTom", label: "LOW TOM", key: "f", color: "#8f5cff", tone: 180 },
-  { id: "snare", label: "SNARE", key: "d", color: "#2f80ed", tone: 210 },
-  { id: "kick", label: "KICK", key: " ", color: "#32e875", tone: 90 },
-  { id: "pedalHat", label: "PEDAL HI-HAT", key: "c", color: "#eef45b", tone: 520 }
+const drumLanes = [
+  { id: "crash", label: "CRASH", short: "CR", key: "q", color: "#dff85a", tone: 420 },
+  { id: "hihat", label: "HI-HATS", short: "HH", key: "w", color: "#05a8aa", tone: 760 },
+  { id: "ride", label: "RIDE", short: "RD", key: "e", color: "#24b8ff", tone: 620 },
+  { id: "highTom", label: "HIGH TOM", short: "HT", key: "a", color: "#ffbe0b", tone: 300 },
+  { id: "midTom", label: "MID TOM", short: "MT", key: "s", color: "#dc602e", tone: 250 },
+  { id: "lowTom", label: "LOW TOM", short: "LT", key: "f", color: "#8f5cff", tone: 180 },
+  { id: "snare", label: "SNARE", short: "SN", key: "d", color: "#2f80ed", tone: 210 },
+  { id: "kick", label: "KICK", short: "K", key: " ", color: "#32e875", tone: 90 },
+  { id: "pedalHat", label: "PEDAL HI-HAT", short: "PH", key: "c", color: "#eef45b", tone: 520 }
 ];
+
+const tabLanes = [
+  { id: "tab1", label: "e", short: "e", key: "q", color: "#dff85a", tone: 659, shape: "tab" },
+  { id: "tab2", label: "B", short: "B", key: "w", color: "#05a8aa", tone: 494, shape: "tab" },
+  { id: "tab3", label: "G", short: "G", key: "e", color: "#ffbe0b", tone: 392, shape: "tab" },
+  { id: "tab4", label: "D", short: "D", key: "a", color: "#dc602e", tone: 294, shape: "tab" },
+  { id: "tab5", label: "A", short: "A", key: "s", color: "#8f5cff", tone: 220, shape: "tab" },
+  { id: "tab6", label: "E", short: "E", key: "d", color: "#32e875", tone: 165, shape: "tab" }
+];
+
+const laneSets = {
+  drums: drumLanes,
+  tabs: tabLanes
+};
+
+let lanes = drumLanes;
 
 const importedTracks = Array.isArray(window.importedTracks) ? window.importedTracks : [];
 const storedTheme = window.localStorage.getItem("strk-theme");
+const storedInstrument = window.localStorage.getItem("strk-instrument") || "drums";
 const savedSongEdits = readStoredJson("strk-song-edits", {});
 let songEdits = savedSongEdits && typeof savedSongEdits === "object" && !Array.isArray(savedSongEdits) ? savedSongEdits : {};
 let songOrder = readStoredJson("strk-song-order", importedTracks.map((track) => track.id));
@@ -83,6 +100,7 @@ const state = {
   selectedTrackId: importedTracks[0]?.id || "",
   libraryQuery: "",
   libraryFilter: "all",
+  instrumentMode: storedInstrument === "tabs" ? "tabs" : "drums",
   menuOpen: false,
   startedAt: 0,
   pausedAt: 0,
@@ -199,6 +217,8 @@ const els = {
   songMap: document.getElementById("songMap"),
   songMapCurrentBar: document.getElementById("songMapCurrentBar"),
   songMapTotalBars: document.getElementById("songMapTotalBars"),
+  laneLabels: document.getElementById("laneLabels"),
+  instrumentButtons: [...document.querySelectorAll("[data-instrument]")],
   score: document.getElementById("score"),
   combo: document.getElementById("combo"),
   accuracy: document.getElementById("accuracy"),
@@ -237,7 +257,39 @@ function chartColors() {
   };
 }
 
+function isGuitarPart(part) {
+  return part === "rhythmGuitar" || part === "leadGuitar";
+}
+
+function tabLaneIdFromMidiNote(note) {
+  return tabLanes[Math.abs(note) % tabLanes.length].id;
+}
+
+function buildTabEvents(track) {
+  if (!Array.isArray(track.tabEvents)) return [];
+  return track.tabEvents
+    .filter((event) => tabLanes.some((lane) => lane.id === event.lane) && Number.isFinite(event.time))
+    .map((event) => ({
+      time: event.time,
+      lane: event.lane,
+      variant: event.part === "leadGuitar" ? "lead" : "rhythm",
+      duration: event.duration,
+      note: event.note,
+      fret: event.fret,
+      string: event.string,
+      bar: event.bar,
+      part: event.part || "guitar",
+      track: event.track || "",
+      hit: false,
+      missed: false,
+      played: false,
+      skipped: false
+    }))
+    .sort((a, b) => a.time - b.time || a.lane.localeCompare(b.lane) || (a.fret || 0) - (b.fret || 0));
+}
+
 function buildEvents(track) {
+  if (state.instrumentMode === "tabs") return buildTabEvents(track);
   if (Array.isArray(track.events)) {
     return track.events
       .filter((event) => lanes.some((lane) => lane.id === event.lane) && Number.isFinite(event.time))
@@ -782,6 +834,46 @@ function persistSongSettings() {
   window.localStorage.setItem("strk-song-order", JSON.stringify(songOrder));
 }
 
+function renderLaneLabels() {
+  if (!els.laneLabels) return;
+  els.laneLabels.replaceChildren();
+  for (const lane of lanes) {
+    const item = document.createElement("div");
+    item.innerHTML = `
+      <span class="lane-full">${lane.label}</span>
+      <span class="lane-short">${lane.short || lane.label}</span>
+    `;
+    els.laneLabels.appendChild(item);
+  }
+}
+
+function setInstrumentMode(mode) {
+  const nextMode = mode === "tabs" ? "tabs" : "drums";
+  const previousTime = state.track ? currentTime() : 0;
+  state.playing = false;
+  state.countInTargetTime = null;
+  state.instrumentMode = nextMode;
+  lanes = laneSets[nextMode];
+  window.localStorage.setItem("strk-instrument", nextMode);
+  els.app.dataset.instrument = nextMode;
+  els.app.style.setProperty("--lane-count", String(lanes.length));
+  els.play.classList.remove("is-playing");
+  for (const button of els.instrumentButtons) {
+    const selected = button.dataset.instrument === nextMode;
+    button.classList.toggle("is-active", selected);
+    button.setAttribute("aria-pressed", String(selected));
+  }
+  renderLaneLabels();
+  if (!state.track) return;
+  reset();
+  state.pausedAt = clampSeekTime(previousTime);
+  markEventsForSeek(state.pausedAt);
+  stopBackingAudio(true);
+  updateSelectedSongPanel();
+  updateStats();
+  draw();
+}
+
 function updateSongEdit(trackId, patch) {
   const current = songEdits[trackId] || {};
   songEdits = { ...songEdits, [trackId]: { ...current, ...patch } };
@@ -1244,7 +1336,7 @@ function handleMidiMessage(message) {
   const command = status & 0xf0;
   if (command !== 0x90 || velocity === 0) return;
 
-  const laneId = midiDrumMap.get(note);
+  const laneId = state.instrumentMode === "tabs" ? tabLaneIdFromMidiNote(note) : midiDrumMap.get(note);
   if (!laneId) {
     state.midiLastNote = `Note ${note}`;
     updateMidiStatus();
@@ -1630,6 +1722,31 @@ function playDrum(laneId, accent = 1, variant = "") {
   }
 }
 
+function playGuitarHit(event, accent = 1) {
+  if (state.muted || !state.audio) return;
+  const sampleId = event.part === "leadGuitar" || event.variant === "lead" ? "leadGuitar" : "rhythmGuitar";
+  const sample = sampleManifest[sampleId];
+  const note = Number.isFinite(event.note) ? event.note : 52;
+  const duration = Math.max(0.08, Math.min(0.9, (event.duration || 260) / 1000 / Math.max(0.5, state.speed)));
+  const velocity = Math.max(0.24, Math.min(1, (event.velocity || 92) / 127));
+  const volume = Math.min(0.34, (sampleId === "leadGuitar" ? 0.19 : 0.16) * accent * velocity);
+
+  if (sample) {
+    const rate = midiFrequency(note) / midiFrequency(sample.rootNote);
+    if (playSample(sampleId, volume, { rate, duration, attack: 0.002, filter: { type: "highpass", frequency: sampleId === "leadGuitar" ? 450 : 320, q: 0.45 } })) return;
+  }
+
+  playOsc("sawtooth", midiFrequency(note), midiFrequency(note) * 0.996, volume * 0.48, duration);
+}
+
+function playChartHit(event, accent = 1) {
+  if (state.instrumentMode === "tabs") {
+    playGuitarHit(event, accent);
+  } else {
+    playDrum(event.lane, accent, event.variant);
+  }
+}
+
 function playBadHit() {
   if (state.muted || !state.audio) return;
   playOsc("sawtooth", 130, 80, 0.045, 0.08);
@@ -1658,7 +1775,7 @@ async function hitLane(laneId) {
     state.flash.set(laneId, { until: performance.now() + 130, good: true });
     state.hitEffects.push({ lane: laneId, started: performance.now(), perfect, timing });
     event.played = true;
-    playDrum(laneId, perfect ? 1.15 : 0.95, event.variant);
+    playChartHit(event, perfect ? 1.15 : 0.95);
   } else {
     state.combo = 0;
     state.judgement = "Miss";
@@ -1678,6 +1795,7 @@ function updatePlaybackSounds() {
   const now = currentTime();
   if (now < practiceStartTime()) return;
   for (const event of state.backingEvents) {
+    if (state.instrumentMode === "tabs" && isGuitarPart(event.part)) continue;
     if (!isEventInPracticeRange(event)) continue;
     if (!event.played && now >= event.time) {
       event.played = true;
@@ -1976,7 +2094,20 @@ function drawNotePad(x, y, lane, laneId, missed, size, ghost = false, variant = 
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
 
-  if (laneId === "crash") {
+  if (lane.shape === "tab") {
+    const fretText = variant && Number.isFinite(Number(variant)) ? variant : "";
+    drawRaisedRect(48 * scale, 34 * scale, 999 * scale);
+    if (fretText !== "") {
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = light ? "#06130f" : "#06130f";
+      ctx.font = `800 ${Math.max(14, 18 * scale)}px Sora, system-ui, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(fretText, x, y + 0.5 * scale);
+    }
+  } else if (lane.shape === "disc") {
+    drawRaisedCircle(20 * scale);
+  } else if (laneId === "crash") {
     drawRaisedDiamond(31 * scale, 22 * scale);
   } else if (laneId === "hihat") {
     const open = variant === "open";
@@ -2024,8 +2155,9 @@ function draw() {
   drawLoopRegion(width, laneAreaHeight, hitX, pxPerMs, now);
 
   for (let i = 1; i < lanes.length; i++) {
-    ctx.strokeStyle = i === 3 || i === 7 ? colors.gridMajor : colors.gridMinor;
-    ctx.lineWidth = i === 7 ? 3.2 : i === 3 ? 2.8 : 1.6;
+    const tabMode = state.instrumentMode === "tabs";
+    ctx.strokeStyle = !tabMode && (i === 3 || i === 7) ? colors.gridMajor : colors.gridMinor;
+    ctx.lineWidth = tabMode ? 1.7 : i === 7 ? 3.2 : i === 3 ? 2.8 : 1.6;
     const y = i * laneHeight;
     ctx.beginPath();
     ctx.moveTo(0, y);
@@ -2042,7 +2174,7 @@ function draw() {
     const laneIndex = lanes.findIndex((lane) => lane.id === event.lane);
     const y = laneIndex * laneHeight + laneHeight / 2;
     const lane = lanes[laneIndex];
-    drawNotePad(x, y, lane, event.lane, event.missed, markerSize, ghost, event.variant);
+    drawNotePad(x, y, lane, event.lane, event.missed, markerSize, ghost, lane.shape === "tab" ? String(event.fret ?? "") : event.variant);
   }
 
   const nowPerf = performance.now();
@@ -2263,6 +2395,9 @@ function init() {
   for (const button of els.menuSectionButtons) {
     button.addEventListener("click", () => focusMenuSection(button.dataset.menuSection));
   }
+  for (const button of els.instrumentButtons) {
+    button.addEventListener("click", () => setInstrumentMode(button.dataset.instrument));
+  }
   for (const audioTarget of [els.app, els.play, els.selectedSongPlay, els.canvas, ...els.laneButtons]) {
     audioTarget?.addEventListener("pointerdown", activateAudioFromGesture, { passive: true });
     audioTarget?.addEventListener("touchstart", activateAudioFromGesture, { passive: true });
@@ -2469,11 +2604,14 @@ function init() {
   });
 
   window.addEventListener("resize", resizeCanvas);
+  lanes = laneSets[state.instrumentMode];
+  renderLaneLabels();
   setZoom(Number(els.zoom.value));
   applyTheme(storedTheme || (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"));
   setSpeed(Number(els.speed.value) / 100);
   setBackingVolume(Number(els.backingVolume.value));
   setAccuracyMode(state.accuracyMode);
+  setInstrumentMode(state.instrumentMode);
   setTrack(state.selectedTrackId);
   updatePracticeControls();
   updateMidiStatus();
